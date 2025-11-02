@@ -151,11 +151,6 @@ func appendFileToOutput(srcPath, fileName string, outFile *os.File) error {
 	}
 	defer srcFile.Close()
 
-	//// Write separator with filename
-	//separator := fmt.Sprintf("\n# File: %s\n\n", fileName)
-	//if _, err := outFile.WriteString(separator); err != nil {
-	//	return err
-	//}
 
 	// Copy file content
 	if _, err := io.Copy(outFile, srcFile); err != nil {
