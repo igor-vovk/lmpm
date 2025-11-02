@@ -17,9 +17,9 @@ func TestLoadConfig(t *testing.T) {
 			name: "valid config",
 			config: `version: 1
 sources:
-  - key: source1
+  - name: source1
     url: /path/to/source1
-  - key: source2
+  - name: source2
     url: https://github.com/user/repo.git
 targets:
   - name: target1
@@ -38,9 +38,9 @@ targets:
 			name: "duplicate source keys",
 			config: `version: 1
 sources:
-  - key: duplicate
+  - name: duplicate
     url: /path/one
-  - key: duplicate
+  - name: duplicate
     url: /path/two
 `,
 			expectError: true,
@@ -50,7 +50,7 @@ sources:
 			name: "empty source key",
 			config: `version: 1
 sources:
-  - key: ""
+  - name: ""
     url: /path/to/source
 `,
 			expectError: true,
@@ -60,7 +60,7 @@ sources:
 			name: "reference to non-existent source",
 			config: `version: 1
 sources:
-  - key: source1
+  - name: source1
     url: /path/to/source
 targets:
   - name: target1
@@ -95,7 +95,7 @@ targets:
 			name: "working_dir source is always added",
 			config: `version: 1
 sources:
-  - key: custom
+  - name: custom
     url: /path/to/custom
 targets:
   - name: target1
@@ -284,6 +284,27 @@ func TestWorkingDirSource(t *testing.T) {
 	}
 }
 
+func TestWorkingDirSourceNotDuplicated(t *testing.T) {
+	cfg := &Config{
+		Version: 1,
+		Sources: []Source{
+			{Name: "working_dir", URL: "/custom/path"},
+		},
+	}
+
+	if err := cfg.addWorkingDirSource(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(cfg.Sources) != 1 {
+		t.Fatalf("expected 1 source, got %d", len(cfg.Sources))
+	}
+
+	if cfg.Sources[0].URL != "/custom/path" {
+		t.Errorf("expected working_dir URL to remain /custom/path, got %s", cfg.Sources[0].URL)
+	}
+}
+
 func TestDefaultSourceForIncludes(t *testing.T) {
 	cfg := &Config{
 		Version: 1,
@@ -312,5 +333,98 @@ func TestDefaultSourceForIncludes(t *testing.T) {
 
 	if cfg.Targets[0].Include[2].Source != "working_dir" {
 		t.Errorf("expected third include source to be working_dir, got %s", cfg.Targets[0].Include[2].Source)
+	}
+}
+
+func TestDefaultStrategy(t *testing.T) {
+	cfg := &Config{
+		Version: 1,
+		Targets: []Target{
+			{Name: "target1", Output: "/output"},
+			{Name: "target2", Output: "/output", Strategy: StrategyPreserve},
+			{Name: "target3", Output: "/output", Strategy: StrategyFlatten},
+			{Name: "target4", Output: "/output/file.md"},
+			{Name: "target5", Output: "/output/file.txt"},
+			{Name: "target6", Output: "/output/file.yaml"},
+		},
+	}
+
+	cfg.setDefaultStrategy()
+
+	if cfg.Targets[0].Strategy != StrategyFlatten {
+		t.Errorf("expected first target strategy to be flatten, got %s", cfg.Targets[0].Strategy)
+	}
+
+	if cfg.Targets[1].Strategy != StrategyPreserve {
+		t.Errorf("expected second target strategy to remain preserve, got %s", cfg.Targets[1].Strategy)
+	}
+
+	if cfg.Targets[2].Strategy != StrategyFlatten {
+		t.Errorf("expected third target strategy to remain flatten, got %s", cfg.Targets[2].Strategy)
+	}
+
+	if cfg.Targets[3].Strategy != StrategyConcat {
+		t.Errorf("expected fourth target (.md) strategy to be concat, got %s", cfg.Targets[3].Strategy)
+	}
+
+	if cfg.Targets[4].Strategy != StrategyConcat {
+		t.Errorf("expected fifth target (.txt) strategy to be concat, got %s", cfg.Targets[4].Strategy)
+	}
+
+	if cfg.Targets[5].Strategy != StrategyFlatten {
+		t.Errorf("expected sixth target (.yaml) strategy to be flatten, got %s", cfg.Targets[5].Strategy)
+	}
+}
+
+func TestInvalidStrategy(t *testing.T) {
+	cfg := &Config{
+		Version: 1,
+		Sources: []Source{
+			{Name: "s1", URL: "/path"},
+		},
+		Targets: []Target{
+			{
+				Name:     "t1",
+				Output:   "/output",
+				Strategy: "invalid",
+				Include: []Include{
+					{Source: "s1", Files: []string{"file.txt"}},
+				},
+			},
+		},
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Error("expected error for invalid strategy")
+	}
+
+	expectedMsg := "target 't1' has invalid strategy: invalid (must be 'flatten', 'preserve', or 'concat')"
+	if err.Error() != expectedMsg {
+		t.Errorf("expected error %q, got %q", expectedMsg, err.Error())
+	}
+}
+
+func TestHasTextExtension(t *testing.T) {
+	tests := []struct {
+		path     string
+		expected bool
+	}{
+		{"/output/file.md", true},
+		{"/output/file.txt", true},
+		{"/output/file.MD", false},  // case sensitive
+		{"/output/file.TXT", false}, // case sensitive
+		{"/output/file.yaml", false},
+		{"/output/file.json", false},
+		{"/output/dir", false},
+		{"output.md", true},
+		{"output.txt", true},
+	}
+
+	for _, tt := range tests {
+		result := hasTextExtension(tt.path)
+		if result != tt.expected {
+			t.Errorf("hasTextExtension(%q) = %v, expected %v", tt.path, result, tt.expected)
+		}
 	}
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -17,10 +18,19 @@ type Include struct {
 	Files  []string `yaml:"files"`
 }
 
+type Strategy string
+
+const (
+	StrategyFlatten  Strategy = "flatten"
+	StrategyPreserve Strategy = "preserve"
+	StrategyConcat   Strategy = "concat"
+)
+
 type Target struct {
-	Name    string    `yaml:"name"`
-	Output  string    `yaml:"output"`
-	Include []Include `yaml:"include"`
+	Name     string    `yaml:"name"`
+	Output   string    `yaml:"output"`
+	Strategy Strategy  `yaml:"strategy,omitempty"`
+	Include  []Include `yaml:"include"`
 }
 
 type Config struct {
@@ -53,6 +63,7 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	cfg.setDefaultSourceForIncludes()
+	cfg.setDefaultStrategy()
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -93,6 +104,25 @@ func (c *Config) setDefaultSourceForIncludes() {
 	}
 }
 
+func (c *Config) setDefaultStrategy() {
+	for i := range c.Targets {
+		target := &c.Targets[i]
+		if target.Strategy == "" {
+			// If output has .md or .txt extension, default to concat
+			if hasTextExtension(target.Output) {
+				target.Strategy = StrategyConcat
+			} else {
+				target.Strategy = StrategyFlatten
+			}
+		}
+	}
+}
+
+func hasTextExtension(path string) bool {
+	ext := filepath.Ext(path)
+	return ext == ".md" || ext == ".txt"
+}
+
 func (c *Config) Validate() error {
 	sourceKeys := make(map[string]bool)
 	for _, source := range c.Sources {
@@ -106,6 +136,10 @@ func (c *Config) Validate() error {
 	}
 
 	for _, target := range c.Targets {
+		if target.Strategy != "" && target.Strategy != StrategyFlatten && target.Strategy != StrategyPreserve && target.Strategy != StrategyConcat {
+			return fmt.Errorf("target '%s' has invalid strategy: %s (must be 'flatten', 'preserve', or 'concat')", target.Name, target.Strategy)
+		}
+
 		for _, include := range target.Include {
 			if !sourceKeys[include.Source] {
 				return fmt.Errorf("target '%s' references unknown source: %s", target.Name, include.Source)

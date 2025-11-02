@@ -21,6 +21,7 @@ sources:
 targets:
   - name: my-target       # Target name
     output: ./output/dir  # Output directory for downloaded files
+    strategy: flatten     # Optional: 'flatten' (default), 'preserve' or 'concat'
     include:
       - source: local-dir # Reference to source name
         files:            # List of file paths to include
@@ -66,6 +67,86 @@ targets:
           - prompts/user.txt
 ```
 
+### Strategy Examples
+
+#### Flatten Strategy (Default for Directories)
+
+With `strategy: flatten`, all files are copied directly to the output directory root, regardless of their original subdirectory structure:
+
+```yaml
+version: 1
+
+targets:
+  - name: my-target
+    output: ./output
+    strategy: flatten  # or omit for directories, as this is the default
+    include:
+      - files:
+          - prompts/system.txt
+          - prompts/user.txt
+          - deep/nested/config.yaml
+
+# Results in:
+# ./output/system.txt
+# ./output/user.txt
+# ./output/config.yaml
+```
+
+#### Preserve Strategy
+
+With `strategy: preserve`, the original directory structure is maintained:
+
+```yaml
+version: 1
+
+targets:
+  - name: my-target
+    output: ./output
+    strategy: preserve
+    include:
+      - files:
+          - prompts/system.txt
+          - prompts/user.txt
+          - deep/nested/config.yaml
+
+# Results in:
+# ./output/prompts/system.txt
+# ./output/prompts/user.txt
+# ./output/deep/nested/config.yaml
+```
+
+#### Concat Strategy (Default for .md/.txt Files)
+
+With `strategy: concat`, all files are concatenated into a single output file. This is automatically selected when the output path ends with `.md` or `.txt`:
+
+```yaml
+version: 1
+
+targets:
+  - name: combined-docs
+    output: ./all-docs.md  # .md extension triggers concat automatically
+    include:
+      - files:
+          - docs/intro.md
+          - docs/guide.md
+          - docs/api.md
+
+# Results in a single file: ./all-docs.md
+# Content format:
+#
+# # File: docs/intro.md
+#
+# <content of intro.md>
+#
+# # File: docs/guide.md
+#
+# <content of guide.md>
+#
+# # File: docs/api.md
+#
+# <content of api.md>
+```
+
 #### Sources
 - `name`: Unique identifier for the source
 - `url`: Either a local directory path or a git repository URL
@@ -77,7 +158,11 @@ targets:
 
 #### Targets
 - `name`: Name of the target
-- `output`: Directory where files will be downloaded/copied
+- `output`: Directory where files will be downloaded/copied, or file path for concatenation
+- `strategy`: How to organize copied files (optional, auto-detected based on output)
+  - `flatten`: Remove subdirectories, copy all files to output root directory (default for directories)
+  - `preserve`: Maintain the original directory structure from the source
+  - `concat`: Concatenate all files into a single output file (default when output ends with .md or .txt)
 - `include`: List of includes from sources
   - `source`: Reference to a source name (optional, defaults to `working_dir`)
   - `files`: List of file paths to include from that source
