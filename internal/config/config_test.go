@@ -242,6 +242,7 @@ func TestValidate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.config.normalize()
 			err := tt.config.Validate()
 
 			if tt.expectError {

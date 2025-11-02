@@ -62,8 +62,7 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.setDefaultSourceForIncludes()
-	cfg.setDefaultStrategy()
+	cfg.normalize()
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -91,6 +90,11 @@ func (c *Config) addWorkingDirSource() error {
 	}
 
 	return nil
+}
+
+func (c *Config) normalize() {
+	c.setDefaultSourceForIncludes()
+	c.setDefaultStrategy()
 }
 
 func (c *Config) setDefaultSourceForIncludes() {
@@ -136,7 +140,7 @@ func (c *Config) Validate() error {
 	}
 
 	for _, target := range c.Targets {
-		if target.Strategy != "" && target.Strategy != StrategyFlatten && target.Strategy != StrategyPreserve && target.Strategy != StrategyConcat {
+		if target.Strategy != StrategyFlatten && target.Strategy != StrategyPreserve && target.Strategy != StrategyConcat {
 			return fmt.Errorf("target '%s' has invalid strategy: %s (must be 'flatten', 'preserve', or 'concat')", target.Name, target.Strategy)
 		}
 

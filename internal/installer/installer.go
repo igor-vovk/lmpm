@@ -72,7 +72,7 @@ func (i *Installer) Install() error {
 				for _, file := range include.Files {
 					srcPath := filepath.Join(sourceDir, file)
 
-					if err := appendFileToOutput(srcPath, file, outFile); err != nil {
+					if err := appendFileToOutput(srcPath, outFile); err != nil {
 						return fmt.Errorf("failed to append file '%s': %w", file, err)
 					}
 
@@ -144,13 +144,12 @@ func copyFile(src, dst string) error {
 	return os.Chmod(dst, srcInfo.Mode())
 }
 
-func appendFileToOutput(srcPath, fileName string, outFile *os.File) error {
+func appendFileToOutput(srcPath string, outFile *os.File) error {
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
 		return err
 	}
 	defer srcFile.Close()
-
 
 	// Copy file content
 	if _, err := io.Copy(outFile, srcFile); err != nil {
