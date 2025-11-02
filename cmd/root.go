@@ -8,9 +8,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "lmpm",
-	Short: "LMPM - Language Model Package Manager",
-	Long:  `A command-line utility for managing language model packages.`,
+	Use:   "pim",
+	Short: "PIM - Prompt Instruction Manager",
+	Long:  "PIM is a CLI tool to manage and utilize prompt instructions for AI models.",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default behavior when no subcommand is specified
 		cmd.Help()
@@ -26,5 +26,5 @@ func Execute() {
 
 func init() {
 	// Global flags can be added here
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.lmpm.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pim.yaml)")
 }

@@ -8,10 +8,10 @@ import (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of LMPM",
-	Long:  `Display the current version of LMPM.`,
+	Short: "Print the version number of PIM",
+	Long:  `Display the current version of PIM (Prompt Instruction Manager).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("LMPM v0.1.0")
+		fmt.Println("PIM v0.1.0")
 	},
 }
 
