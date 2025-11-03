@@ -42,7 +42,7 @@ func (s *ConcatStrategy) AddFile(srcPath, _ string) error {
 	defer srcFile.Close()
 
 	if _, err := io.Copy(s.outFile, srcFile); err != nil {
-		return err
+		return fmt.Errorf("failed to copy file '%s': %w", srcPath, err)
 	}
 
 	if _, err := s.outFile.WriteString("\n"); err != nil {
