@@ -37,7 +37,7 @@ func (s *ConcatStrategy) Prepare() error {
 func (s *ConcatStrategy) AddFile(srcPath, _ string) error {
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open source file '%s': %w", srcPath, err)
 	}
 	defer srcFile.Close()
 
