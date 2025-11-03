@@ -410,12 +410,12 @@ func TestParseInclude(t *testing.T) {
 		{
 			name:       "local file",
 			includeStr: "file.txt",
-			expected:   Include{Source: "working_dir", Files: []string{"file.txt"}},
+			expected:   Include{Source: DefaultSourceName, Files: []string{"file.txt"}},
 		},
 		{
 			name:       "multiple local files",
 			includeStr: "file1.txt, file2.txt, file3.txt",
-			expected:   Include{Source: "working_dir", Files: []string{"file1.txt", "file2.txt", "file3.txt"}},
+			expected:   Include{Source: DefaultSourceName, Files: []string{"file1.txt", "file2.txt", "file3.txt"}},
 		},
 		{
 			name:       "remote source single file",

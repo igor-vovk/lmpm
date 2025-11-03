@@ -68,11 +68,29 @@ func (i *Installer) Install() error {
 			for _, file := range include.Files {
 				srcPath := filepath.Join(sourceDir, file)
 
-				if err := strategy.AddFile(srcPath, file); err != nil {
-					return fmt.Errorf("failed to add file '%s': %w", file, err)
+				// Use Glob to handle both literal paths and wildcard patterns
+				matches, err := filepath.Glob(srcPath)
+				if err != nil {
+					return fmt.Errorf("failed to expand pattern '%s': %w", file, err)
 				}
 
-				fmt.Printf("  ✓ %s\n", file)
+				if len(matches) == 0 {
+					return fmt.Errorf("no files matched pattern '%s'", file)
+				}
+
+				for _, match := range matches {
+					// Get the relative path from sourceDir
+					relPath, err := filepath.Rel(sourceDir, match)
+					if err != nil {
+						return fmt.Errorf("failed to get relative path for '%s': %w", match, err)
+					}
+
+					if err := strategy.AddFile(match, relPath); err != nil {
+						return fmt.Errorf("failed to add file '%s': %w", relPath, err)
+					}
+
+					fmt.Printf("  ✓ %s\n", relPath)
+				}
 			}
 		}
 	}

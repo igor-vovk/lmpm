@@ -35,6 +35,7 @@ The `include` field uses a simple string format to specify files:
 - **Local files** (from `working_dir`): `"path/to/file.txt"`
 - **Files from other sources**: `"@source-name/path/to/file.txt"`
 - **Multiple files** in one line: `"file1.txt, file2.txt, file3.txt"`
+- **Wildcard patterns**: `"*.md"`, `"**/*.txt"`, `"??.yaml"`, `"[a-z]*.md"`
 
 #### Minimal Configuration Example
 
@@ -153,10 +154,42 @@ targets:
 - `include`: List of file paths to include
   - Format: `"path/to/file.txt"` for local files (from working_dir source)
   - Format: `"@source-name/path/to/file.txt"` for files from named sources
+  - Supports wildcards: `*` (any characters), `?` (single character), `[...]` (character class)
+  - Example: `"prompts/*.md"`, `"@source/docs/**/*.txt"`, `"config/[a-z]*.yaml"`
 
 ### Configuration Location
 - Default: `pim.yaml` or `.pim.yaml` in the current directory
 - Can be overridden with `--config` flag
+
+## Wildcard Support
+
+PIM supports glob patterns for flexible file selection using the standard wildcard syntax:
+
+- `*` - Matches any number of characters (but not directory separators)
+- `?` - Matches exactly one character
+- `[abc]` - Matches any character in the set
+- `[a-z]` - Matches any character in the range
+- `**` - Matches any number of directories (when using recursive patterns)
+
+### Wildcard Examples
+
+```yaml
+version: 1
+
+targets:
+  - name: all-markdown
+    output: ./docs/combined.md
+    include:
+      - "docs/*.md"                       # All .md files in docs/
+      - "@org-lib/prompts/**/*.md"       # All .md files recursively
+      - "config/?.yaml"                   # Single-char filenames with .yaml
+      - "@source/templates/[a-z]*.txt"   # Lowercase-starting files
+```
+
+### Error Handling
+
+- If a wildcard pattern matches no files, PIM will return an error
+- Non-wildcard patterns (literal paths) must also exist, or an error is returned
 
 ## Features (To Be Defined)
 - Package management

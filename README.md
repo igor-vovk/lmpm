@@ -286,6 +286,7 @@ targets:
     - Format: `"path/to/file.txt"` for local files (from working_dir source)
     - Format: `"@source-name/path/to/file.txt"` for files from other sources
     - Multiple files can be included in one string separated by commas
+    - Wildcards: Supports `*`, `?`, and `[...]` patterns (e.g., `"prompts/*.md"`, `"@source/docs/[a-z]*.txt"`)
 
 ## Development
 

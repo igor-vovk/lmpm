@@ -85,14 +85,14 @@ func (c *Config) addWorkingDirSource() error {
 
 	hasWorkingDir := false
 	for _, source := range c.Sources {
-		if source.Name == "working_dir" {
+		if source.Name == DefaultSourceName {
 			hasWorkingDir = true
 			break
 		}
 	}
 
 	if !hasWorkingDir {
-		c.Sources = append([]Source{{Name: "working_dir", URL: wd}}, c.Sources...)
+		c.Sources = append([]Source{{Name: DefaultSourceName, URL: wd}}, c.Sources...)
 	}
 
 	return nil
