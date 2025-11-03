@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/hubble-works/pim/internal/config"
 )
 
 type FlattenStrategy struct {
@@ -29,9 +31,13 @@ func (s *FlattenStrategy) Prepare() error {
 
 func (s *FlattenStrategy) AddFile(srcPath, relativePath string) error {
 	dstPath := filepath.Join(s.outputPath, filepath.Base(relativePath))
-	return copyFile(srcPath, dstPath)
+	return CopyFile(srcPath, dstPath)
 }
 
 func (s *FlattenStrategy) Close() error {
 	return nil
+}
+
+func (s *FlattenStrategy) GetType() config.StrategyType {
+	return config.StrategyFlatten
 }

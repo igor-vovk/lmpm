@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func copyFile(src, dst string) error {
+func CopyFile(src, dst string) error {
 	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
 		return err
 	}
@@ -33,4 +33,9 @@ func copyFile(src, dst string) error {
 	}
 
 	return os.Chmod(dst, srcInfo.Mode())
+}
+
+func HasTextExtension(path string) bool {
+	ext := filepath.Ext(path)
+	return ext == ".md" || ext == ".txt"
 }

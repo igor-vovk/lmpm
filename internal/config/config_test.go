@@ -212,7 +212,6 @@ func TestValidate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.config.setDefaultStrategy()
 			err := tt.config.Validate()
 
 			if tt.expectError {
@@ -307,46 +306,6 @@ func TestDefaultSourceForIncludes(t *testing.T) {
 	}
 }
 
-func TestDefaultStrategy(t *testing.T) {
-	cfg := &Config{
-		Version: 1,
-		Targets: []Target{
-			{Name: "target1", Output: "/output"},
-			{Name: "target2", Output: "/output", Strategy: StrategyPreserve},
-			{Name: "target3", Output: "/output", Strategy: StrategyFlatten},
-			{Name: "target4", Output: "/output/file.md"},
-			{Name: "target5", Output: "/output/file.txt"},
-			{Name: "target6", Output: "/output/file.yaml"},
-		},
-	}
-
-	cfg.setDefaultStrategy()
-
-	if cfg.Targets[0].Strategy != StrategyFlatten {
-		t.Errorf("expected first target strategy to be flatten, got %s", cfg.Targets[0].Strategy)
-	}
-
-	if cfg.Targets[1].Strategy != StrategyPreserve {
-		t.Errorf("expected second target strategy to remain preserve, got %s", cfg.Targets[1].Strategy)
-	}
-
-	if cfg.Targets[2].Strategy != StrategyFlatten {
-		t.Errorf("expected third target strategy to remain flatten, got %s", cfg.Targets[2].Strategy)
-	}
-
-	if cfg.Targets[3].Strategy != StrategyConcat {
-		t.Errorf("expected fourth target (.md) strategy to be concat, got %s", cfg.Targets[3].Strategy)
-	}
-
-	if cfg.Targets[4].Strategy != StrategyConcat {
-		t.Errorf("expected fifth target (.txt) strategy to be concat, got %s", cfg.Targets[4].Strategy)
-	}
-
-	if cfg.Targets[5].Strategy != StrategyFlatten {
-		t.Errorf("expected sixth target (.yaml) strategy to be flatten, got %s", cfg.Targets[5].Strategy)
-	}
-}
-
 func TestInvalidStrategy(t *testing.T) {
 	cfg := &Config{
 		Version: 1,
@@ -355,9 +314,9 @@ func TestInvalidStrategy(t *testing.T) {
 		},
 		Targets: []Target{
 			{
-				Name:     "t1",
-				Output:   "/output",
-				Strategy: "invalid",
+				Name:         "t1",
+				Output:       "/output",
+				StrategyType: "invalid",
 				IncludeParsed: []Include{
 					{Source: "s1", Files: []string{"file.txt"}},
 				},
@@ -373,30 +332,6 @@ func TestInvalidStrategy(t *testing.T) {
 	expectedMsg := "target 't1' has invalid strategy: invalid (must be 'flatten', 'preserve', or 'concat')"
 	if err.Error() != expectedMsg {
 		t.Errorf("expected error %q, got %q", expectedMsg, err.Error())
-	}
-}
-
-func TestHasTextExtension(t *testing.T) {
-	tests := []struct {
-		path     string
-		expected bool
-	}{
-		{"/output/file.md", true},
-		{"/output/file.txt", true},
-		{"/output/file.MD", false},  // case sensitive
-		{"/output/file.TXT", false}, // case sensitive
-		{"/output/file.yaml", false},
-		{"/output/file.json", false},
-		{"/output/dir", false},
-		{"output.md", true},
-		{"output.txt", true},
-	}
-
-	for _, tt := range tests {
-		result := hasTextExtension(tt.path)
-		if result != tt.expected {
-			t.Errorf("hasTextExtension(%q) = %v, expected %v", tt.path, result, tt.expected)
-		}
 	}
 }
 

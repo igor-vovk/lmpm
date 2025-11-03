@@ -49,7 +49,7 @@ func (i *Installer) Install() error {
 	for _, target := range i.config.Targets {
 		fmt.Printf("Installing target '%s' to %s...\n", target.Name, target.Output)
 
-		strategy, err := CreateStrategy(target.Strategy, target.Output)
+		strategy, err := NewStrategy(target.StrategyType, target.Output)
 		if err != nil {
 			return fmt.Errorf("failed to create strategy for target '%s': %w", target.Name, err)
 		}

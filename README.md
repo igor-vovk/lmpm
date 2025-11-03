@@ -81,7 +81,7 @@ version: 1
 
 sources:
   - name: org-prompts
-    url: https://github.com/myorg/ai-prompts
+    url: github.com/myorg/ai-prompts
 
 targets:
   - name: copilot-instructions
@@ -118,9 +118,9 @@ version: 1
 
 sources:
   - name: awesome-copilot
-    url: https://github.com/github/awesome-copilot
+    url: github.com/github/awesome-copilot
   - name: org-standards
-    url: https://github.com/myorg/engineering-standards
+    url: github.com/myorg/engineering-standards
 
 targets:
   - name: ai-instructions
@@ -148,7 +148,7 @@ version: 1
 
 sources:
   - name: governance
-    url: https://github.com/myorg/ai-governance
+    url: github.com/myorg/ai-governance
 
 targets:
   - name: copilot-setup
@@ -181,7 +181,7 @@ sources:
   - name: local-prompts
     url: /path/to/prompts
   - name: shared-repo
-    url: https://github.com/user/prompts-repo
+    url: github.com/user/prompts-repo
 
 targets:
   - name: my-project
@@ -268,7 +268,7 @@ targets:
 - `name` - Unique identifier for the source
 - `url` - Local directory path or Git repository URL
     - Local: `/absolute/path` or `./relative/path`
-    - Git: `https://github.com/user/repo.git`
+    - Git: `github.com/user/repo`
 
 **Special Sources:**
 

@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/goccy/go-yaml"
@@ -16,12 +15,12 @@ type Source struct {
 
 const DefaultSourceName = "working_dir"
 
-type Strategy string
+type StrategyType string
 
 const (
-	StrategyFlatten  Strategy = "flatten"
-	StrategyPreserve Strategy = "preserve"
-	StrategyConcat   Strategy = "concat"
+	StrategyFlatten  StrategyType = "flatten"
+	StrategyPreserve StrategyType = "preserve"
+	StrategyConcat   StrategyType = "concat"
 )
 
 type Include struct {
@@ -30,11 +29,11 @@ type Include struct {
 }
 
 type Target struct {
-	Name          string    `yaml:"name"`
-	Output        string    `yaml:"output"`
-	Strategy      Strategy  `yaml:"strategy,omitempty"`
-	Include       []string  `yaml:"include"`
-	IncludeParsed []Include `yaml:"-"`
+	Name          string       `yaml:"name"`
+	Output        string       `yaml:"output"`
+	StrategyType  StrategyType `yaml:"strategy,omitempty"`
+	Include       []string     `yaml:"include"`
+	IncludeParsed []Include    `yaml:"-"`
 }
 
 type Config struct {
@@ -103,7 +102,6 @@ func (c *Config) normalize() error {
 		return err
 	}
 	c.setDefaultSourceForIncludes()
-	c.setDefaultStrategy()
 	return nil
 }
 
@@ -133,25 +131,6 @@ func (c *Config) setDefaultSourceForIncludes() {
 	}
 }
 
-func (c *Config) setDefaultStrategy() {
-	for i := range c.Targets {
-		target := &c.Targets[i]
-		if target.Strategy == "" {
-			// If output has .md or .txt extension, default to concat
-			if hasTextExtension(target.Output) {
-				target.Strategy = StrategyConcat
-			} else {
-				target.Strategy = StrategyFlatten
-			}
-		}
-	}
-}
-
-func hasTextExtension(path string) bool {
-	ext := filepath.Ext(path)
-	return ext == ".md" || ext == ".txt"
-}
-
 func (c *Config) Validate() error {
 	sourceKeys := make(map[string]bool)
 	for _, source := range c.Sources {
@@ -165,8 +144,8 @@ func (c *Config) Validate() error {
 	}
 
 	for _, target := range c.Targets {
-		if target.Strategy != StrategyFlatten && target.Strategy != StrategyPreserve && target.Strategy != StrategyConcat {
-			return fmt.Errorf("target '%s' has invalid strategy: %s (must be 'flatten', 'preserve', or 'concat')", target.Name, target.Strategy)
+		if target.StrategyType != "" && target.StrategyType != StrategyFlatten && target.StrategyType != StrategyPreserve && target.StrategyType != StrategyConcat {
+			return fmt.Errorf("target '%s' has invalid strategy: %s (must be 'flatten', 'preserve', or 'concat')", target.Name, target.StrategyType)
 		}
 
 		for _, include := range target.IncludeParsed {

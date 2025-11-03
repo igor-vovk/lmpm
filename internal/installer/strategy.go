@@ -14,10 +14,11 @@ type Strategy interface {
 	Prepare() error
 	AddFile(srcPath, relativePath string) error
 	Close() error
+	GetType() config.StrategyType
 }
 
-func CreateStrategy(
-	strategyType config.Strategy,
+func NewStrategy(
+	strategyType config.StrategyType,
 	outputPath string,
 ) (Strategy, error) {
 	switch strategyType {
@@ -27,6 +28,12 @@ func CreateStrategy(
 		return NewFlattenStrategy(outputPath), nil
 	case config.StrategyPreserve:
 		return NewPreserveStrategy(outputPath), nil
+	case "":
+		if HasTextExtension(outputPath) {
+			return NewStrategy(config.StrategyConcat, outputPath)
+		} else {
+			return NewStrategy(config.StrategyFlatten, outputPath)
+		}
 	}
 
 	return nil, fmt.Errorf("unknown strategy type: %s", strategyType)

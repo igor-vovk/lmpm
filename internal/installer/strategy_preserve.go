@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/hubble-works/pim/internal/config"
 )
 
 type PreserveStrategy struct {
@@ -29,9 +31,13 @@ func (s *PreserveStrategy) Prepare() error {
 
 func (s *PreserveStrategy) AddFile(srcPath, relativePath string) error {
 	dstPath := filepath.Join(s.outputPath, relativePath)
-	return copyFile(srcPath, dstPath)
+	return CopyFile(srcPath, dstPath)
 }
 
 func (s *PreserveStrategy) Close() error {
 	return nil
+}
+
+func (s *PreserveStrategy) GetType() config.StrategyType {
+	return config.StrategyPreserve
 }
