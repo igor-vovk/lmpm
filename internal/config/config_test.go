@@ -43,7 +43,7 @@ targets:
 			expectError: false,
 		},
 		{
-			name: "duplicate source keys",
+			name: "duplicate source names",
 			config: `version: 1
 sources:
   - name: duplicate
@@ -52,17 +52,17 @@ sources:
     url: /path/two
 `,
 			expectError: true,
-			errorMsg:    "duplicate source key: duplicate",
+			errorMsg:    "duplicate source name: duplicate",
 		},
 		{
-			name: "empty source key",
+			name: "empty source name",
 			config: `version: 1
 sources:
   - name: ""
     url: /path/to/source
 `,
 			expectError: true,
-			errorMsg:    "source key cannot be empty",
+			errorMsg:    "source name cannot be empty",
 		},
 		{
 			name: "reference to non-existent source",

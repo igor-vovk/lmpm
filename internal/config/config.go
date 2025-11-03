@@ -132,18 +132,18 @@ func (c *Config) setDefaultSourceForIncludes() {
 }
 
 func (c *Config) Validate() error {
-	sourceKeys := make(map[string]bool)
+	sourceNames := make(map[string]bool)
 	for _, source := range c.Sources {
 		if source.Name == "" {
-			return fmt.Errorf("source key cannot be empty")
+			return fmt.Errorf("source name cannot be empty")
 		}
 		if strings.Contains(source.Name, "/") {
 			return fmt.Errorf("source name '%s' cannot contain '/'", source.Name)
 		}
-		if sourceKeys[source.Name] {
-			return fmt.Errorf("duplicate source key: %s", source.Name)
+		if sourceNames[source.Name] {
+			return fmt.Errorf("duplicate source name: %s", source.Name)
 		}
-		sourceKeys[source.Name] = true
+		sourceNames[source.Name] = true
 	}
 
 	for _, target := range c.Targets {
@@ -152,7 +152,7 @@ func (c *Config) Validate() error {
 		}
 
 		for _, include := range target.IncludeParsed {
-			if !sourceKeys[include.Source] {
+			if !sourceNames[include.Source] {
 				return fmt.Errorf("target '%s' references unknown source: %s", target.Name, include.Source)
 			}
 		}
