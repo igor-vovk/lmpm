@@ -137,6 +137,9 @@ func (c *Config) Validate() error {
 		if source.Name == "" {
 			return fmt.Errorf("source key cannot be empty")
 		}
+		if strings.Contains(source.Name, "/") {
+			return fmt.Errorf("source name '%s' cannot contain '/'", source.Name)
+		}
 		if sourceKeys[source.Name] {
 			return fmt.Errorf("duplicate source key: %s", source.Name)
 		}

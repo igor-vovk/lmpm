@@ -208,6 +208,17 @@ func TestValidate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "target 't1' references unknown source: unknown",
 		},
+		{
+			name: "`/` in source name",
+			config: &Config{
+				Version: 1,
+				Sources: []Source{
+					{Name: "invalid/name", URL: "/path1"},
+				},
+			},
+			expectError: true,
+			errorMsg:    "source name 'invalid/name' cannot contain '/'",
+		},
 	}
 
 	for _, tt := range tests {
