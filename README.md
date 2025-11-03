@@ -28,14 +28,6 @@ and organizational standards.
 Perfect for organizations managing multiple repositories. Centralize prompt governance, ensure consistency across teams,
 and maintain compliance with organizational standards in multi-repo setups.
 
-## Features
-
-- 📦 Fetch files from multiple sources (local directories, Git repositories)
-- 🔧 Flexible configuration using YAML
-- 🎯 Organize files into different targets with multiple strategies
-- 🔗 Concatenate multiple instruction files into unified prompts
-- 📝 Simple and intuitive configuration format
-
 ## Installation
 
 ### From Source
@@ -326,3 +318,7 @@ See [LICENSE](LICENSE) file for details.
 ## Documentation
 
 For detailed specification, see [SPEC.md](SPEC.md). 
+
+## Awesome Lists
+- [Awesome Copilot](http://github.com/github/awesome-copilot/)
+- [Contains Studio AI Agents](https://github.com/contains-studio/agents)
