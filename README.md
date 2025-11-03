@@ -48,14 +48,6 @@ make install
 
 This will install the `pim` binary to `$GOPATH/bin` (usually `~/go/bin`).
 
-### Build Locally
-
-```bash
-make build
-```
-
-This creates the `pim` binary in the current directory.
-
 ## Quick Start
 
 1. Create a `pim.yaml` configuration file:
@@ -65,7 +57,7 @@ version: 1
 
 targets:
   - name: prompts
-    output: ./output
+    output: .github/copilot-instructions.md
     include:
       - files:
           - prompts/system.txt
@@ -98,11 +90,11 @@ version: 1
 
 sources:
   - key: org-prompts
-    url: https://github.com/myorg/ai-prompts.git
+    url: github.com/myorg/ai-prompts
 
 targets:
   - name: copilot-instructions
-    output: ./.github/copilot-instructions.md
+    output: .github/copilot-instructions.md
     include:
       - source: org-prompts
         files:
@@ -138,13 +130,13 @@ version: 1
 
 sources:
   - key: awesome-copilot
-    url: https://github.com/github/awesome-copilot.git
+    url: github.com/github/awesome-copilot
   - key: org-standards
-    url: https://github.com/myorg/engineering-standards.git
+    url: github.com/myorg/engineering-standards
 
 targets:
   - name: ai-instructions
-    output: ./.github/copilot-instructions.md
+    output: .github/copilot-instructions.md
     include:
       - source: awesome-copilot
         files:
@@ -173,11 +165,11 @@ version: 1
 
 sources:
   - key: governance
-    url: https://github.com/myorg/ai-governance.git
+    url: github.com/myorg/ai-governance
 
 targets:
   - name: copilot-setup
-    output: ./.github/copilot-instructions.md
+    output: .github/copilot-instructions.md
     include:
       - source: governance
         files:
@@ -209,11 +201,11 @@ sources:
   - key: local-prompts
     url: /path/to/prompts
   - key: shared-repo
-    url: https://github.com/user/prompts-repo.git
+    url: github.com/user/prompts-repo
 
 targets:
   - name: my-project
-    output: ./prompts
+    output: prompts/
     include:
       - source: local-prompts
         files:
@@ -231,7 +223,7 @@ targets:
 ```yaml
 targets:
   - name: prompts
-    output: ./output
+    output: output/
     strategy: flatten  # This is the default for directories
     include:
       - files:
@@ -246,7 +238,7 @@ targets:
 ```yaml
 targets:
   - name: prompts
-    output: ./output
+    output: output/
     strategy: preserve
     include:
       - files:
@@ -261,7 +253,7 @@ targets:
 ```yaml
 targets:
   - name: combined-prompts
-    output: ./all-prompts.md  # .md or .txt triggers concat by default
+    output: all-prompts.md  # .md or .txt triggers concat by default
     include:
       - files:
           - prompts/system.txt
@@ -279,7 +271,7 @@ version: 1
 
 targets:
   - name: local-files
-    output: ./output
+    output: output/
     include:
       - files: # source defaults to working_dir
           - file1.txt
