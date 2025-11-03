@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 type Source struct {
@@ -13,10 +14,7 @@ type Source struct {
 	URL  string `yaml:"url"`
 }
 
-type Include struct {
-	Source string   `yaml:"source"`
-	Files  []string `yaml:"files"`
-}
+const DefaultSourceName = "working_dir"
 
 type Strategy string
 
@@ -26,11 +24,17 @@ const (
 	StrategyConcat   Strategy = "concat"
 )
 
+type Include struct {
+	Source string
+	Files  []string
+}
+
 type Target struct {
-	Name     string    `yaml:"name"`
-	Output   string    `yaml:"output"`
-	Strategy Strategy  `yaml:"strategy,omitempty"`
-	Include  []Include `yaml:"include"`
+	Name          string    `yaml:"name"`
+	Output        string    `yaml:"output"`
+	Strategy      Strategy  `yaml:"strategy,omitempty"`
+	Include       []string  `yaml:"include"`
+	IncludeParsed []Include `yaml:"-"`
 }
 
 type Config struct {
@@ -62,7 +66,9 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.normalize()
+	if err := cfg.normalize(); err != nil {
+		return nil, err
+	}
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -79,30 +85,49 @@ func (c *Config) addWorkingDirSource() error {
 
 	hasWorkingDir := false
 	for _, source := range c.Sources {
-		if source.Name == "working_dir" {
+		if source.Name == DefaultSourceName {
 			hasWorkingDir = true
 			break
 		}
 	}
 
 	if !hasWorkingDir {
-		c.Sources = append([]Source{{Name: "working_dir", URL: wd}}, c.Sources...)
+		c.Sources = append([]Source{{Name: DefaultSourceName, URL: wd}}, c.Sources...)
 	}
 
 	return nil
 }
 
-func (c *Config) normalize() {
+func (c *Config) normalize() error {
+	if err := c.parseIncludes(); err != nil {
+		return err
+	}
 	c.setDefaultSourceForIncludes()
 	c.setDefaultStrategy()
+	return nil
+}
+
+func (c *Config) parseIncludes() error {
+	for i := range c.Targets {
+		var includes []Include
+		for _, includeStr := range c.Targets[i].Include {
+			include, err := ParseInclude(includeStr)
+			if err != nil {
+				return fmt.Errorf("failed to parse include in target '%s': %w", c.Targets[i].Name, err)
+			}
+			includes = append(includes, include)
+		}
+		c.Targets[i].IncludeParsed = includes
+	}
+	return nil
 }
 
 func (c *Config) setDefaultSourceForIncludes() {
 	for i := range c.Targets {
-		for j := range c.Targets[i].Include {
-			include := &c.Targets[i].Include[j]
+		for j := range c.Targets[i].IncludeParsed {
+			include := &c.Targets[i].IncludeParsed[j]
 			if include.Source == "" {
-				include.Source = "working_dir"
+				include.Source = DefaultSourceName
 			}
 		}
 	}
@@ -144,7 +169,7 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("target '%s' has invalid strategy: %s (must be 'flatten', 'preserve', or 'concat')", target.Name, target.Strategy)
 		}
 
-		for _, include := range target.Include {
+		for _, include := range target.IncludeParsed {
 			if !sourceKeys[include.Source] {
 				return fmt.Errorf("target '%s' references unknown source: %s", target.Name, include.Source)
 			}
@@ -152,4 +177,36 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+func ParseInclude(includeStr string) (Include, error) {
+	// if includeStr starts with @, it's structure is "@source/path1,path2,..."
+	if len(includeStr) > 0 && includeStr[0] == '@' {
+		parts := strings.SplitN(includeStr[1:], "/", 2)
+		if len(parts) != 2 {
+			return Include{}, fmt.Errorf("invalid include format: %s", includeStr)
+		}
+
+		source := parts[0]
+		filePaths := strings.Split(parts[1], ",")
+		for i := range filePaths {
+			filePaths[i] = strings.TrimSpace(filePaths[i])
+		}
+
+		return Include{
+			Source: source,
+			Files:  filePaths,
+		}, nil
+	} else {
+		// otherwise, it's just a path in the working_dir source
+		filePaths := strings.Split(includeStr, ",")
+		for i := range filePaths {
+			filePaths[i] = strings.TrimSpace(filePaths[i])
+		}
+
+		return Include{
+			Source: DefaultSourceName,
+			Files:  filePaths,
+		}, nil
+	}
 }

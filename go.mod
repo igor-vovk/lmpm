@@ -3,9 +3,9 @@ module github.com/hubble-works/pim
 go 1.25.3
 
 require (
+	github.com/goccy/go-yaml v1.18.0
 	github.com/hashicorp/go-getter v1.8.3
 	github.com/spf13/cobra v1.10.1
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

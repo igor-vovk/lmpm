@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=./schema.json
+
+version: 1
+
+# Define sources to fetch files from (optional, working_dir is always available)
+sources:
+  - name: org-prompts
+    url: https://github.com/myorg/ai-prompts
+  - name: local-lib
+    url: /path/to/local/prompts
+
+# Define targets where files should be installed
+targets:
+  # Example 1: Concatenate multiple files into a single markdown file
+  - name: copilot-instructions
+    output: .github/copilot-instructions.md
+    strategy: concat  # Automatically detected from .md extension
+    include:
+      - "instructions/base-rules.md"
+      - "instructions/coding-style.md"
+      - "@org-prompts/prompts/best-practices.md"
+
+  # Example 2: Flatten strategy - all files copied to output root
+  - name: flat-output
+    output: ./output
+    strategy: flatten
+    include:
+      - "config/system.txt"
+      - "@local-lib/settings.txt"
+
+  # Example 3: Preserve strategy - maintains directory structure
+  - name: nested-output
+    output: ./docs
+    strategy: preserve
+    include:
+      - "docs/api.md"
+      - "docs/guide.md"
+      - "@org-prompts/documentation/readme.md"
+
+  # Example 4: Multiple files in one include string
+  - name: multi-files
+    output: ./combined
+    include:
+      - "file1.txt, file2.txt, file3.txt"
+      - "@org-prompts/prompt1.md, prompt2.md"
+

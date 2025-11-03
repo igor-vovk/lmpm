@@ -2,7 +2,6 @@ package installer
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -27,7 +26,7 @@ func (i *Installer) Install() error {
 	}
 	defer os.RemoveAll(tempDir)
 
-	sourceCache := make(map[string]string)
+	sourceDirsByName := make(map[string]string)
 
 	for _, source := range i.config.Sources {
 		sourceDir := filepath.Join(tempDir, source.Name)
@@ -44,122 +43,58 @@ func (i *Installer) Install() error {
 			return fmt.Errorf("failed to fetch source '%s': %w", source.Name, err)
 		}
 
-		sourceCache[source.Name] = sourceDir
+		sourceDirsByName[source.Name] = sourceDir
 	}
 
 	for _, target := range i.config.Targets {
 		fmt.Printf("Installing target '%s' to %s...\n", target.Name, target.Output)
 
-		if target.Strategy == config.StrategyConcat {
-			// For concat strategy, create the output file
-			if err := os.MkdirAll(filepath.Dir(target.Output), 0755); err != nil {
-				return fmt.Errorf("failed to create output directory '%s': %w", filepath.Dir(target.Output), err)
+		strategy, err := CreateStrategy(target.Strategy, target.Output)
+		if err != nil {
+			return fmt.Errorf("failed to create strategy for target '%s': %w", target.Name, err)
+		}
+
+		if err := strategy.Prepare(); err != nil {
+			return err
+		}
+		defer strategy.Close()
+
+		for _, include := range target.IncludeParsed {
+			sourceDir, ok := sourceDirsByName[include.Source]
+			if !ok {
+				return fmt.Errorf("source '%s' not found", include.Source)
 			}
 
-			outFile, err := os.Create(target.Output)
-			if err != nil {
-				return fmt.Errorf("failed to create output file '%s': %w", target.Output, err)
-			}
-			defer outFile.Close()
+			for _, file := range include.Files {
+				srcPath := filepath.Join(sourceDir, file)
 
-			// Concatenate all files
-			for _, include := range target.Include {
-				sourceDir, ok := sourceCache[include.Source]
-				if !ok {
-					return fmt.Errorf("source '%s' not found", include.Source)
+				// Use Glob to handle both literal paths and wildcard patterns
+				matches, err := filepath.Glob(srcPath)
+				if err != nil {
+					return fmt.Errorf("failed to expand pattern '%s': %w", file, err)
 				}
 
-				for _, file := range include.Files {
-					srcPath := filepath.Join(sourceDir, file)
-
-					if err := appendFileToOutput(srcPath, outFile); err != nil {
-						return fmt.Errorf("failed to append file '%s': %w", file, err)
-					}
-
-					fmt.Printf("  ✓ %s\n", file)
-				}
-			}
-		} else {
-			// For flatten and preserve strategies
-			if err := os.MkdirAll(target.Output, 0755); err != nil {
-				return fmt.Errorf("failed to create output directory '%s': %w", target.Output, err)
-			}
-
-			for _, include := range target.Include {
-				sourceDir, ok := sourceCache[include.Source]
-				if !ok {
-					return fmt.Errorf("source '%s' not found", include.Source)
+				if len(matches) == 0 {
+					return fmt.Errorf("no files matched pattern '%s'", file)
 				}
 
-				for _, file := range include.Files {
-					srcPath := filepath.Join(sourceDir, file)
-
-					var dstPath string
-					if target.Strategy == config.StrategyFlatten {
-						dstPath = filepath.Join(target.Output, filepath.Base(file))
-					} else {
-						dstPath = filepath.Join(target.Output, file)
+				for _, match := range matches {
+					// Get the relative path from sourceDir
+					relPath, err := filepath.Rel(sourceDir, match)
+					if err != nil {
+						return fmt.Errorf("failed to get relative path for '%s': %w", match, err)
 					}
 
-					if err := copyFile(srcPath, dstPath); err != nil {
-						return fmt.Errorf("failed to copy file '%s': %w", file, err)
+					if err := strategy.AddFile(match, relPath); err != nil {
+						return fmt.Errorf("failed to add file '%s': %w", relPath, err)
 					}
 
-					fmt.Printf("  ✓ %s\n", file)
+					fmt.Printf("  ✓ %s\n", relPath)
 				}
 			}
 		}
 	}
 
 	fmt.Println("Installation complete!")
-	return nil
-}
-
-func copyFile(src, dst string) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
-		return err
-	}
-
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return err
-	}
-
-	srcInfo, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	return os.Chmod(dst, srcInfo.Mode())
-}
-
-func appendFileToOutput(srcPath string, outFile *os.File) error {
-	srcFile, err := os.Open(srcPath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	// Copy file content
-	if _, err := io.Copy(outFile, srcFile); err != nil {
-		return err
-	}
-
-	// Add newline at the end
-	if _, err := outFile.WriteString("\n"); err != nil {
-		return err
-	}
-
 	return nil
 }

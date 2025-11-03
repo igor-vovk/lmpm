@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PIM Configuration Schema",
+  "description": "Schema for PIM (Prompt Instruction Manager) configuration files",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Configuration schema version",
+      "const": 1,
+      "examples": [1]
+    },
+    "sources": {
+      "type": "array",
+      "description": "List of sources to fetch files from",
+      "items": {
+        "type": "object",
+        "title": "Source",
+        "description": "A source repository or directory",
+        "required": ["name", "url"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier for the source",
+            "minLength": 1,
+            "examples": ["org-prompts", "github-repo", "local-dir"]
+          },
+          "url": {
+            "type": "string",
+            "description": "Local directory path or git repository URL",
+            "examples": [
+              "/path/to/directory",
+              "./relative/path",
+              "https://github.com/user/repo.git",
+              "git@github.com:user/repo.git"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "targets": {
+      "type": "array",
+      "description": "List of installation targets",
+      "items": {
+        "type": "object",
+        "title": "Target",
+        "description": "A target output location with files to include",
+        "required": ["name", "output"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Target name",
+            "minLength": 1,
+            "examples": ["copilot-instructions", "documentation", "combined-prompts"]
+          },
+          "output": {
+            "type": "string",
+            "description": "Output directory path or file path for concatenation",
+            "examples": [
+              "./.github/copilot-instructions.md",
+              "./output",
+              "./dist/instructions.txt",
+              "output/"
+            ]
+          },
+          "strategy": {
+            "type": "string",
+            "description": "Installation strategy (optional, auto-detected based on output file extension)",
+            "enum": ["flatten", "preserve", "concat"],
+            "default": "flatten",
+            "examples": ["flatten", "preserve", "concat"]
+          },
+          "include": {
+            "type": "array",
+            "description": "List of files to include in this target",
+            "items": {
+              "type": "string",
+              "title": "Include",
+              "description": "File path in string format. Use '@source-name/path' for other sources, or just 'path' for working_dir. Multiple files can be comma-separated.",
+              "examples": [
+                "file.txt",
+                "path/to/file.md",
+                "file1.txt, file2.txt",
+                "@org-prompts/prompts/code-review.md",
+                "@source/path/to/file.txt, another/file.txt"
+              ]
+            },
+            "minItems": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "version": 1,
+      "sources": [
+        {
+          "name": "org-prompts",
+          "url": "https://github.com/myorg/ai-prompts"
+        },
+        {
+          "name": "local-prompts",
+          "url": "/path/to/prompts"
+        }
+      ],
+      "targets": [
+        {
+          "name": "copilot-instructions",
+          "output": ".github/copilot-instructions.md",
+          "strategy": "concat",
+          "include": [
+            "instructions/base.md",
+            "instructions/coding-style.md",
+            "@org-prompts/prompts/best-practices.md"
+          ]
+        },
+        {
+          "name": "documentation",
+          "output": "docs/",
+          "strategy": "preserve",
+          "include": [
+            "docs/guide.md",
+            "docs/api.md",
+            "@local-prompts/README.md"
+          ]
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "targets": [
+        {
+          "name": "prompts",
+          "output": "output/",
+          "include": [
+            "prompts/system.txt",
+            "prompts/user.txt"
+          ]
+        }
+      ]
+    }
+  ]
+}

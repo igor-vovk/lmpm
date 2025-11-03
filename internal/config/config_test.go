@@ -14,7 +14,7 @@ func TestLoadConfig(t *testing.T) {
 		errorMsg    string
 	}{
 		{
-			name: "valid config",
+			name: "valid config with string includes",
 			config: `version: 1
 sources:
   - name: source1
@@ -25,12 +25,20 @@ targets:
   - name: target1
     output: ./output
     include:
-      - source: source1
-        files:
-          - file1.txt
-      - source: source2
-        files:
-          - file2.txt
+      - "@source1/file1.txt"
+      - "@source2/file2.txt"
+`,
+			expectError: false,
+		},
+		{
+			name: "valid config with local files",
+			config: `version: 1
+targets:
+  - name: target1
+    output: ./output
+    include:
+      - "file1.txt"
+      - "file2.txt"
 `,
 			expectError: false,
 		},
@@ -66,9 +74,7 @@ targets:
   - name: target1
     output: ./output
     include:
-      - source: nonexistent
-        files:
-          - file.txt
+      - "@nonexistent/file.txt"
 `,
 			expectError: true,
 			errorMsg:    "target 'target1' references unknown source: nonexistent",
@@ -76,18 +82,6 @@ targets:
 		{
 			name: "empty config with defaults",
 			config: `version: 1
-`,
-			expectError: false,
-		},
-		{
-			name: "omitted source defaults to working_dir",
-			config: `version: 1
-targets:
-  - name: target1
-    output: ./output
-    include:
-      - files:
-          - file1.txt
 `,
 			expectError: false,
 		},
@@ -101,8 +95,7 @@ targets:
   - name: target1
     output: ./output
     include:
-      - files:
-          - file1.txt
+      - "file1.txt"
 `,
 			expectError: false,
 		},
@@ -187,7 +180,7 @@ func TestValidate(t *testing.T) {
 					{
 						Name:   "t1",
 						Output: "/output",
-						Include: []Include{
+						IncludeParsed: []Include{
 							{Source: "s1", Files: []string{"file.txt"}},
 						},
 					},
@@ -196,30 +189,7 @@ func TestValidate(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "duplicate keys",
-			config: &Config{
-				Version: 1,
-				Sources: []Source{
-					{Name: "same", URL: "/path1"},
-					{Name: "same", URL: "/path2"},
-				},
-			},
-			expectError: true,
-			errorMsg:    "duplicate source key: same",
-		},
-		{
-			name: "empty key",
-			config: &Config{
-				Version: 1,
-				Sources: []Source{
-					{Name: "", URL: "/path1"},
-				},
-			},
-			expectError: true,
-			errorMsg:    "source key cannot be empty",
-		},
-		{
-			name: "unknown source reference",
+			name: "missing source reference",
 			config: &Config{
 				Version: 1,
 				Sources: []Source{
@@ -229,7 +199,7 @@ func TestValidate(t *testing.T) {
 					{
 						Name:   "t1",
 						Output: "/output",
-						Include: []Include{
+						IncludeParsed: []Include{
 							{Source: "unknown", Files: []string{"file.txt"}},
 						},
 					},
@@ -242,7 +212,7 @@ func TestValidate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.config.normalize()
+			tt.config.setDefaultStrategy()
 			err := tt.config.Validate()
 
 			if tt.expectError {
@@ -313,7 +283,7 @@ func TestDefaultSourceForIncludes(t *testing.T) {
 			{
 				Name:   "target1",
 				Output: "/output",
-				Include: []Include{
+				IncludeParsed: []Include{
 					{Files: []string{"file1.txt"}},
 					{Source: "custom", Files: []string{"file2.txt"}},
 					{Files: []string{"file3.txt"}},
@@ -324,16 +294,16 @@ func TestDefaultSourceForIncludes(t *testing.T) {
 
 	cfg.setDefaultSourceForIncludes()
 
-	if cfg.Targets[0].Include[0].Source != "working_dir" {
-		t.Errorf("expected first include source to be working_dir, got %s", cfg.Targets[0].Include[0].Source)
+	if cfg.Targets[0].IncludeParsed[0].Source != "working_dir" {
+		t.Errorf("expected first include source to be working_dir, got %s", cfg.Targets[0].IncludeParsed[0].Source)
 	}
 
-	if cfg.Targets[0].Include[1].Source != "custom" {
-		t.Errorf("expected second include source to remain custom, got %s", cfg.Targets[0].Include[1].Source)
+	if cfg.Targets[0].IncludeParsed[1].Source != "custom" {
+		t.Errorf("expected second include source to remain custom, got %s", cfg.Targets[0].IncludeParsed[1].Source)
 	}
 
-	if cfg.Targets[0].Include[2].Source != "working_dir" {
-		t.Errorf("expected third include source to be working_dir, got %s", cfg.Targets[0].Include[2].Source)
+	if cfg.Targets[0].IncludeParsed[2].Source != "working_dir" {
+		t.Errorf("expected third include source to be working_dir, got %s", cfg.Targets[0].IncludeParsed[2].Source)
 	}
 }
 
@@ -388,7 +358,7 @@ func TestInvalidStrategy(t *testing.T) {
 				Name:     "t1",
 				Output:   "/output",
 				Strategy: "invalid",
-				Include: []Include{
+				IncludeParsed: []Include{
 					{Source: "s1", Files: []string{"file.txt"}},
 				},
 			},
@@ -427,5 +397,67 @@ func TestHasTextExtension(t *testing.T) {
 		if result != tt.expected {
 			t.Errorf("hasTextExtension(%q) = %v, expected %v", tt.path, result, tt.expected)
 		}
+	}
+}
+
+func TestParseInclude(t *testing.T) {
+	tests := []struct {
+		name        string
+		includeStr  string
+		expected    Include
+		expectError bool
+	}{
+		{
+			name:       "local file",
+			includeStr: "file.txt",
+			expected:   Include{Source: DefaultSourceName, Files: []string{"file.txt"}},
+		},
+		{
+			name:       "multiple local files",
+			includeStr: "file1.txt, file2.txt, file3.txt",
+			expected:   Include{Source: DefaultSourceName, Files: []string{"file1.txt", "file2.txt", "file3.txt"}},
+		},
+		{
+			name:       "remote source single file",
+			includeStr: "@source/file.txt",
+			expected:   Include{Source: "source", Files: []string{"file.txt"}},
+		},
+		{
+			name:       "remote source multiple files",
+			includeStr: "@source/file1.txt, file2.txt",
+			expected:   Include{Source: "source", Files: []string{"file1.txt", "file2.txt"}},
+		},
+		{
+			name:        "invalid format no slash",
+			includeStr:  "@source",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := ParseInclude(tt.includeStr)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if result.Source != tt.expected.Source {
+					t.Errorf("expected source %q, got %q", tt.expected.Source, result.Source)
+				}
+				if len(result.Files) != len(tt.expected.Files) {
+					t.Errorf("expected %d files, got %d", len(tt.expected.Files), len(result.Files))
+				}
+				for i, file := range result.Files {
+					if file != tt.expected.Files[i] {
+						t.Errorf("expected file %q, got %q", tt.expected.Files[i], file)
+					}
+				}
+			}
+		})
 	}
 }

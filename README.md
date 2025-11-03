@@ -51,9 +51,8 @@ targets:
   - name: prompts
     output: .github/copilot-instructions.md
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
+      - "prompts/system.txt"
+      - "prompts/user.txt"
 ```
 
 2. Run PIM:
@@ -81,17 +80,15 @@ Create a central repository of prompts and reuse them across multiple projects:
 version: 1
 
 sources:
-  - key: org-prompts
-    url: github.com/myorg/ai-prompts
+  - name: org-prompts
+    url: https://github.com/myorg/ai-prompts
 
 targets:
   - name: copilot-instructions
     output: .github/copilot-instructions.md
     include:
-      - source: org-prompts
-        files:
-          - prompts/code-review.md
-          - prompts/documentation.md
+      - "@org-prompts/prompts/code-review.md"
+      - "@org-prompts/prompts/documentation.md"
 ```
 
 ### Use Case 2: Modular Instruction Files
@@ -105,11 +102,10 @@ targets:
   - name: combined-instructions
     output: .github/copilot-instructions.md  # .md extension triggers concat strategy
     include:
-      - files: # Uses working_dir by default
-          - instructions/base-rules.md
-          - instructions/coding-style.md
-          - instructions/security-guidelines.md
-          - instructions/project-specific.md
+      - "instructions/base-rules.md"
+      - "instructions/coding-style.md"
+      - "instructions/security-guidelines.md"
+      - "instructions/project-specific.md"
 # Results in a single file with all instructions concatenated
 ```
 
@@ -121,24 +117,19 @@ Stay updated with best practices from community repositories:
 version: 1
 
 sources:
-  - key: awesome-copilot
-    url: github.com/github/awesome-copilot
-  - key: org-standards
-    url: github.com/myorg/engineering-standards
+  - name: awesome-copilot
+    url: https://github.com/github/awesome-copilot
+  - name: org-standards
+    url: https://github.com/myorg/engineering-standards
 
 targets:
   - name: ai-instructions
     output: .github/copilot-instructions.md
     include:
-      - source: awesome-copilot
-        files:
-          - prompts/best-practices.md
-      - source: org-standards
-        files:
-          - ai/code-quality.md
-          - ai/security.md
-      - files: # Local project-specific instructions
-          - docs/project-context.md
+      - "@awesome-copilot/prompts/best-practices.md"
+      - "@org-standards/ai/code-quality.md"
+      - "@org-standards/ai/security.md"
+      - "docs/project-context.md"
 ```
 
 ### Use Case 4: Multi-Repo Governance
@@ -156,20 +147,17 @@ Ensure consistent AI behavior across organizational repositories:
 version: 1
 
 sources:
-  - key: governance
-    url: github.com/myorg/ai-governance
+  - name: governance
+    url: https://github.com/myorg/ai-governance
 
 targets:
   - name: copilot-setup
     output: .github/copilot-instructions.md
     include:
-      - source: governance
-        files:
-          - governance/security-requirements.md
-          - governance/code-standards.md
-          - governance/compliance.md
-      - files: # Team-specific additions
-          - .github/team-guidelines.md
+      - "@governance/governance/security-requirements.md"
+      - "@governance/governance/code-standards.md"
+      - "@governance/governance/compliance.md"
+      - ".github/team-guidelines.md"
 ```
 
 ## Usage
@@ -190,22 +178,18 @@ PIM looks for `pim.yaml` or `.pim.yaml` in the current directory (or the directo
 version: 1
 
 sources:
-  - key: local-prompts
+  - name: local-prompts
     url: /path/to/prompts
-  - key: shared-repo
-    url: github.com/user/prompts-repo
+  - name: shared-repo
+    url: https://github.com/user/prompts-repo
 
 targets:
   - name: my-project
     output: prompts/
     include:
-      - source: local-prompts
-        files:
-          - system.txt
-          - user.txt
-      - source: shared-repo
-        files:
-          - templates/common.txt
+      - "@local-prompts/system.txt"
+      - "@local-prompts/user.txt"
+      - "@shared-repo/templates/common.txt"
 ```
 
 #### Strategy Examples
@@ -218,11 +202,14 @@ targets:
     output: output/
     strategy: flatten  # This is the default for directories
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
-          - deep/nested/file.txt
-# Result: ./output/system.txt, ./output/user.txt, ./output/file.txt
+      - "prompts/system.txt"
+      - "prompts/user.txt"
+      - "deep/nested/file.txt"
+# Result:
+# output/
+#   ├── system.txt
+#   ├── user.txt
+#   └── file.txt
 ```
 
 **Preserve strategy** - Maintains directory structure:
@@ -233,11 +220,17 @@ targets:
     output: output/
     strategy: preserve
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
-          - deep/nested/file.txt
-# Result: ./output/prompts/system.txt, ./output/prompts/user.txt, ./output/deep/nested/file.txt
+      - "prompts/system.txt"
+      - "prompts/user.txt"
+      - "deep/nested/file.txt"
+# Result:
+# output/
+#   ├── prompts/
+#   │   ├── system.txt
+#   │   └── user.txt
+#   └── deep/
+#       └── nested/
+#           └── file.txt
 ```
 
 **Concat strategy (default for .md/.txt files)** - Concatenates all files:
@@ -247,11 +240,10 @@ targets:
   - name: combined-prompts
     output: all-prompts.md  # .md or .txt triggers concat by default
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
-# Result: Single file ./all-prompts.md with both files concatenated
-# Each file section is marked with: # File: <filename>
+      - "prompts/system.txt"
+      - "prompts/user.txt"
+# Result: Single file
+# all-prompts.md
 ```
 
 #### Minimal Configuration
@@ -265,9 +257,8 @@ targets:
   - name: local-files
     output: output/
     include:
-      - files: # source defaults to working_dir
-          - file1.txt
-          - file2.txt
+      - "file1.txt"
+      - "file2.txt"
 ```
 
 ### Configuration Options
@@ -291,9 +282,11 @@ targets:
     - `flatten` - Remove subdirectories, copy all files to output root (default for directories)
     - `preserve` - Maintain original directory structure
     - `concat` - Concatenate all files into a single output file (default for .md/.txt outputs)
-- `include` - List of files to include
-    - `source` - Source name (optional, defaults to `working_dir`)
-    - `files` - List of file paths to include
+- `include` - List of file paths to include
+    - Format: `"path/to/file.txt"` for local files (from working_dir source)
+    - Format: `"@source-name/path/to/file.txt"` for files from other sources
+    - Multiple files can be included in one string separated by commas
+    - Wildcards: Supports `*`, `?`, and `[...]` patterns (e.g., `"prompts/*.md"`, `"@source/docs/[a-z]*.txt"`)
 
 ## Development
 
@@ -317,7 +310,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Documentation
 
-For detailed specification, see [SPEC.md](SPEC.md). 
+For detailed specification, see [SPEC.md](SPEC.md).
 
 ## Awesome Lists
 - [Awesome Copilot](https://github.com/github/awesome-copilot/)
