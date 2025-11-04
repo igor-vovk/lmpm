@@ -1,4 +1,4 @@
-module github.com/hubble-works/pim
+module github.com/hubblew/pim
 
 go 1.25.3
 

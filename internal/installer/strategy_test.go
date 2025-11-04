@@ -3,7 +3,7 @@ package installer
 import (
 	"testing"
 
-	"github.com/hubble-works/pim/internal/config"
+	"github.com/hubblew/pim/internal/config"
 )
 
 func TestCreateStrategy(t *testing.T) {

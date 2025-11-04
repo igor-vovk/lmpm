@@ -33,7 +33,7 @@ and maintain compliance with organizational standards in multi-repo setups.
 ### From Source
 
 ```bash
-git clone https://github.com/hubble-works/pim.git
+git clone https://github.com/hubblew/pim.git
 cd pim
 make install
 ```

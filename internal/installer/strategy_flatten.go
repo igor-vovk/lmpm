@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hubble-works/pim/internal/config"
+	"github.com/hubblew/pim/internal/config"
 )
 
 type FlattenStrategy struct {

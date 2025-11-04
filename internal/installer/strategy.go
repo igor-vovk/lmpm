@@ -3,7 +3,7 @@ package installer
 import (
 	"fmt"
 
-	"github.com/hubble-works/pim/internal/config"
+	"github.com/hubblew/pim/internal/config"
 )
 
 // Strategy defines the interface for different installation strategies.

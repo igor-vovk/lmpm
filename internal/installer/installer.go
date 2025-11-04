@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	getter "github.com/hashicorp/go-getter"
-	"github.com/hubble-works/pim/internal/config"
+	"github.com/hubblew/pim/internal/config"
 )
 
 type Installer struct {
