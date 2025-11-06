@@ -37,8 +37,7 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
-		inst := installer.New(cfg)
-		if err := inst.Install(); err != nil {
+		if err := installer.New().Install(cfg); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}
 

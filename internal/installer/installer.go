@@ -5,21 +5,18 @@ import (
 	"os"
 	"path/filepath"
 
-	getter "github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-getter"
 	"github.com/hubblew/pim/internal/config"
 )
 
 type Installer struct {
-	config *config.Config
 }
 
-func New(cfg *config.Config) *Installer {
-	return &Installer{
-		config: cfg,
-	}
+func New() *Installer {
+	return &Installer{}
 }
 
-func (i *Installer) Install() error {
+func (i *Installer) Install(cfg *config.Config) error {
 	tempDir, err := os.MkdirTemp("", "pim-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
@@ -28,7 +25,7 @@ func (i *Installer) Install() error {
 
 	sourceDirsByName := make(map[string]string)
 
-	for _, source := range i.config.Sources {
+	for _, source := range cfg.Sources {
 		sourceDir := filepath.Join(tempDir, source.Name)
 
 		fmt.Printf("Fetching source '%s' from %s...\n", source.Name, source.URL)
@@ -46,7 +43,7 @@ func (i *Installer) Install() error {
 		sourceDirsByName[source.Name] = sourceDir
 	}
 
-	for _, target := range i.config.Targets {
+	for _, target := range cfg.Targets {
 		fmt.Printf("Installing target '%s' to %s...\n", target.Name, target.Output)
 
 		strategy, err := NewStrategy(target.StrategyType, target.Output)
