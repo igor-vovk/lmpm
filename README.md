@@ -42,7 +42,15 @@ This will install the `pim` binary to `$GOPATH/bin` (usually `~/go/bin`).
 
 ## Quick Start
 
-1. Create a `pim.yaml` configuration file:
+1. Create instruction files:
+
+```bash
+mkdir -p prompts
+echo "You are a helpful assistant." > prompts/system.txt
+echo "Follow best practices." > prompts/user.txt
+```
+
+2. Create a `pim.yaml` configuration file:
 
 ```yaml
 version: 1
@@ -55,11 +63,15 @@ targets:
       - "prompts/user.txt"
 ```
 
-2. Run PIM:
+3. Run PIM:
 
 ```bash
 pim install
 ```
+
+**Note:** After running `pim install`, `.github/copilot-instructions.md` becomes a managed file. To modify it, update
+the source files (e.g., `prompts/system.txt`, `prompts/user.txt`) and run `pim install` again, rather than editing the
+output file directly.
 
 ## Use Cases
 
@@ -312,5 +324,6 @@ See [LICENSE](LICENSE) file for details.
 For detailed specification, see [SPEC.md](SPEC.md).
 
 ## Awesome Lists
+
 - [Awesome Copilot](https://github.com/github/awesome-copilot/)
 - [Contains Studio AI Agents](https://github.com/contains-studio/agents)
