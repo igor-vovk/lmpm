@@ -26,7 +26,13 @@ func (i *Installer) Install(cfg *config.Config) error {
 	sourceDirsByName := make(map[string]string)
 
 	for _, source := range cfg.Sources {
-		sourceDir := filepath.Join(tempDir, source.Name)
+		if info, err := os.Stat(source.URL); err == nil && info.IsDir() {
+			sourceDirsByName[source.Name] = source.URL
+
+			continue
+		}
+
+		var sourceDir = filepath.Join(tempDir, source.Name)
 
 		fmt.Printf("Fetching source '%s' from %s...\n", source.Name, source.URL)
 

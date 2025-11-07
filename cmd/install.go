@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var configFlag string
+var configPathFlag string
 
 const DefaultConfigFileName = "pim.yaml"
 
@@ -28,11 +28,11 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("failed to change to directory %s: %w", dir, err)
 		}
 
-		if _, err := os.Stat(configFlag); os.IsNotExist(err) {
-			return fmt.Errorf("configuration file not found: %s", configFlag)
+		if _, err := os.Stat(configPathFlag); os.IsNotExist(err) {
+			return fmt.Errorf("configuration file not found: %s", configPathFlag)
 		}
 
-		cfg, err := config.LoadConfig(configFlag)
+		cfg, err := config.LoadConfig(configPathFlag)
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
 		}
@@ -47,7 +47,7 @@ var installCmd = &cobra.Command{
 
 func init() {
 	installCmd.Flags().StringVarP(
-		&configFlag,
+		&configPathFlag,
 		"config",
 		"c",
 		DefaultConfigFileName,
