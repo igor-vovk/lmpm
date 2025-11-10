@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
-	"github.com/hubblew/pim/internal/config"
 )
 
 type ConcatStrategy struct {
@@ -61,8 +59,4 @@ func (s *ConcatStrategy) Close() error {
 		return s.outFile.Close()
 	}
 	return nil
-}
-
-func (s *ConcatStrategy) GetType() config.StrategyType {
-	return config.StrategyConcat
 }

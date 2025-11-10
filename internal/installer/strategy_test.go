@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/hubblew/pim/internal/config"
@@ -12,70 +13,56 @@ func TestCreateStrategy(t *testing.T) {
 		strategyType config.StrategyType
 		outputPath   string
 		expectError  bool
-		expectedType config.StrategyType
+		expectedType reflect.Type
 	}{
 		{
 			name:         "explicit concat strategy",
 			strategyType: config.StrategyConcat,
 			outputPath:   "./output.md",
 			expectError:  false,
-			expectedType: config.StrategyConcat,
+			expectedType: reflect.TypeOf(&ConcatStrategy{}),
 		},
 		{
 			name:         "explicit flatten strategy",
 			strategyType: config.StrategyFlatten,
 			outputPath:   "./output",
 			expectError:  false,
-			expectedType: config.StrategyFlatten,
+			expectedType: reflect.TypeOf(&FlattenStrategy{}),
 		},
 		{
 			name:         "explicit preserve strategy",
 			strategyType: config.StrategyPreserve,
 			outputPath:   "./output",
 			expectError:  false,
-			expectedType: config.StrategyPreserve,
+			expectedType: reflect.TypeOf(&PreserveStrategy{}),
 		},
 		{
 			name:         "auto-detect concat from .md extension",
 			strategyType: "",
 			outputPath:   "./output.md",
 			expectError:  false,
-			expectedType: config.StrategyConcat,
+			expectedType: reflect.TypeOf(&ConcatStrategy{}),
 		},
 		{
 			name:         "auto-detect concat from .txt extension",
 			strategyType: "",
 			outputPath:   "./output.txt",
 			expectError:  false,
-			expectedType: config.StrategyConcat,
+			expectedType: reflect.TypeOf(&ConcatStrategy{}),
 		},
 		{
 			name:         "auto-detect flatten from directory path",
 			strategyType: "",
 			outputPath:   "./output",
 			expectError:  false,
-			expectedType: config.StrategyFlatten,
-		},
-		{
-			name:         "auto-detect flatten from .yaml extension",
-			strategyType: "",
-			outputPath:   "./config.yaml",
-			expectError:  false,
-			expectedType: config.StrategyFlatten,
-		},
-		{
-			name:         "auto-detect flatten from directory slash",
-			strategyType: "",
-			outputPath:   "./output/",
-			expectError:  false,
-			expectedType: config.StrategyFlatten,
+			expectedType: reflect.TypeOf(&FlattenStrategy{}),
 		},
 		{
 			name:         "invalid strategy type",
 			strategyType: config.StrategyType("invalid"),
 			outputPath:   "./output",
 			expectError:  true,
-			expectedType: "",
+			expectedType: nil,
 		},
 	}
 
@@ -97,40 +84,30 @@ func TestCreateStrategy(t *testing.T) {
 				if strategy == nil {
 					t.Error("expected strategy to be non-nil")
 				}
-				if strategy.GetType() != tt.expectedType {
-					t.Errorf("expected strategy type %s, got %s", tt.expectedType, strategy.GetType())
+
+				actualType := reflect.TypeOf(strategy)
+
+				if actualType != tt.expectedType {
+					t.Errorf("expected strategy type %v, got %v", tt.expectedType, actualType)
 				}
 			}
 		})
 	}
 }
 
-func TestCreateStrategyRecursion(t *testing.T) {
-	// Test that auto-detection recursively calls NewStrategy
-	strategy, err := NewStrategy("", "test.md")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	_, ok := strategy.(*ConcatStrategy)
-	if !ok {
-		t.Errorf("expected ConcatStrategy, got %T", strategy)
-	}
-}
-
 func TestCreateStrategyOutputPaths(t *testing.T) {
 	tests := []struct {
-		name       string
-		outputPath string
-		strategy   config.StrategyType
+		name         string
+		outputPath   string
+		expectedType reflect.Type
 	}{
-		{"markdown file", "docs.md", config.StrategyConcat},
-		{"text file", "output.txt", config.StrategyConcat},
-		{"nested markdown", "./nested/path/docs.md", config.StrategyConcat},
-		{"directory", "output/", config.StrategyFlatten},
-		{"nested directory", "./nested/output", config.StrategyFlatten},
-		{"yaml file", "config.yaml", config.StrategyFlatten},
-		{"json file", "data.json", config.StrategyFlatten},
+		{"markdown file", "docs.md", reflect.TypeOf(&ConcatStrategy{})},
+		{"text file", "output.txt", reflect.TypeOf(&ConcatStrategy{})},
+		{"nested markdown", "./nested/path/docs.md", reflect.TypeOf(&ConcatStrategy{})},
+		{"directory", "output/", reflect.TypeOf(&FlattenStrategy{})},
+		{"nested directory", "./nested/output", reflect.TypeOf(&FlattenStrategy{})},
+		{"yaml file", "config.yaml", reflect.TypeOf(&FlattenStrategy{})},
+		{"json file", "data.json", reflect.TypeOf(&FlattenStrategy{})},
 	}
 
 	for _, tt := range tests {
@@ -140,8 +117,9 @@ func TestCreateStrategyOutputPaths(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if strategy.GetType() != tt.strategy {
-				t.Errorf("expected strategy type %s, got %s", tt.strategy, strategy.GetType())
+			actualType := reflect.TypeOf(strategy)
+			if actualType != tt.expectedType {
+				t.Errorf("expected strategy type %s, got %s", tt.expectedType, actualType)
 			}
 		})
 	}

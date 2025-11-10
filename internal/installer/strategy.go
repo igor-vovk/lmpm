@@ -14,7 +14,6 @@ type Strategy interface {
 	Prepare() error
 	AddFile(srcPath, relativePath string) error
 	Close() error
-	GetType() config.StrategyType
 }
 
 func NewStrategy(
