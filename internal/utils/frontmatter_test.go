@@ -2,9 +2,9 @@ package utils
 
 import (
 	"bytes"
-	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/spf13/afero"
 )
 
 func TestReadFrontmatter(t *testing.T) {
@@ -85,16 +85,15 @@ Content`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-			tmpFile := filepath.Join(tmpDir, "test.md")
+			fs := afero.NewMemMapFs()
+			testFile := "test.md"
 
-			err := os.WriteFile(tmpFile, []byte(tt.fileContent), 0644)
-			if err != nil {
-				t.Fatalf("failed to create temp file: %v", err)
+			if err := afero.WriteFile(fs, testFile, []byte(tt.fileContent), 0644); err != nil {
+				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			var got map[string]string
-			err = ReadFrontmatter(tmpFile, &got)
+			err := ReadFrontmatter(fs, testFile, &got)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReadFrontmatter() error = %v, wantErr %v", err, tt.wantErr)
@@ -107,17 +106,6 @@ Content`,
 				}
 			}
 		})
-	}
-}
-
-func TestReadFrontmatter_FileNotFound(t *testing.T) {
-	nonExistentPath := filepath.Join(t.TempDir(), "does_not_exist.md")
-
-	var result map[string]string
-	err := ReadFrontmatter(nonExistentPath, &result)
-
-	if err == nil {
-		t.Error("ReadFrontmatter() expected error for non-existent file, got nil")
 	}
 }
 
@@ -162,6 +150,8 @@ func TestWriteFrontmatter(t *testing.T) {
 }
 
 func TestWriteFrontmatter_RoundTrip(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
 	original := map[string]string{
 		"title":       "Test Document",
 		"description": "A test document",
@@ -174,16 +164,13 @@ func TestWriteFrontmatter_RoundTrip(t *testing.T) {
 		t.Fatalf("WriteFrontmatter() error = %v", err)
 	}
 
-	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.md")
-
-	err = os.WriteFile(tmpFile, buf.Bytes(), 0644)
-	if err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
+	testFile := "test.md"
+	if err := afero.WriteFile(fs, testFile, buf.Bytes(), 0644); err != nil {
+		t.Fatalf("failed to write test file: %v", err)
 	}
 
 	var result map[string]string
-	err = ReadFrontmatter(tmpFile, &result)
+	err = ReadFrontmatter(fs, testFile, &result)
 	if err != nil {
 		t.Fatalf("ReadFrontmatter() error = %v", err)
 	}

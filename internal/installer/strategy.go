@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hubblew/pim/internal/config"
+	"github.com/spf13/afero"
 )
 
 // Strategy defines the interface for different installation strategies.
@@ -17,21 +18,22 @@ type Strategy interface {
 }
 
 func NewStrategy(
+	fs afero.Fs,
 	strategyType config.StrategyType,
 	outputPath string,
 ) (Strategy, error) {
 	switch strategyType {
 	case config.StrategyConcat:
-		return NewConcatStrategy(outputPath), nil
+		return NewConcatStrategy(fs, outputPath), nil
 	case config.StrategyFlatten:
-		return NewFlattenStrategy(outputPath), nil
+		return NewFlattenStrategy(fs, outputPath), nil
 	case config.StrategyPreserve:
-		return NewPreserveStrategy(outputPath), nil
+		return NewPreserveStrategy(fs, outputPath), nil
 	case "":
 		if HasMdExtension(outputPath) {
-			return NewStrategy(config.StrategyConcat, outputPath)
+			return NewStrategy(fs, config.StrategyConcat, outputPath)
 		} else {
-			return NewStrategy(config.StrategyFlatten, outputPath)
+			return NewStrategy(fs, config.StrategyFlatten, outputPath)
 		}
 	}
 

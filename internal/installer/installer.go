@@ -7,9 +7,11 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/hubblew/pim/internal/config"
+	"github.com/spf13/afero"
 )
 
 type Installer struct {
+	fs afero.Fs
 }
 
 type Options struct {
@@ -17,8 +19,10 @@ type Options struct {
 	UserPrompter UserPrompter
 }
 
-func NewInstaller() *Installer {
-	return &Installer{}
+func NewInstaller(fs afero.Fs) *Installer {
+	return &Installer{
+		fs: fs,
+	}
 }
 
 func (i *Installer) Install(options *Options) error {
@@ -57,7 +61,7 @@ func (i *Installer) Install(options *Options) error {
 	for _, target := range options.Config.Targets {
 		fmt.Printf("Installing target '%s' to %s...\n", target.Name, target.Output)
 
-		strategy, err := NewStrategy(target.StrategyType, target.Output)
+		strategy, err := NewStrategy(i.fs, target.StrategyType, target.Output)
 		if err != nil {
 			return fmt.Errorf("failed to create strategy for target '%s': %w", target.Name, err)
 		}
@@ -76,7 +80,7 @@ func (i *Installer) Install(options *Options) error {
 			srcPath := filepath.Join(sourceDir, include.File)
 
 			// Use Glob to handle both literal paths and wildcard patterns
-			matches, err := filepath.Glob(srcPath)
+			matches, err := afero.Glob(i.fs, srcPath)
 			if err != nil {
 				return fmt.Errorf("failed to expand pattern '%s': %w", include.File, err)
 			}

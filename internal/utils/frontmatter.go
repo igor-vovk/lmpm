@@ -4,27 +4,30 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/goccy/go-yaml"
+	"github.com/spf13/afero"
 )
 
 const delimiter = "---"
 
-// ReadFrontmatter reads the file at the given path and extracts the frontmatter block if present.
-// The frontmatter is expected to be in YAML format, enclosed between '---' delimiters.
-// The extracted frontmatter is unmarshalled into the provided variable v.
-func ReadFrontmatter(path string, v any) error {
-	file, err := os.Open(path)
+// ReadFrontmatter reads the file at the given path using the provided filesystem
+// and extracts the frontmatter block if present.
+func ReadFrontmatter(fs afero.Fs, path string, v any) error {
+	file, err := fs.Open(path)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer func() {
-		_ = file.Close() // Error on read-only file close is not critical
+		_ = file.Close()
 	}()
 
-	scanner := bufio.NewScanner(file)
+	return readFrontmatterFromReader(file, v)
+}
+
+func readFrontmatterFromReader(reader io.Reader, v any) error {
+	scanner := bufio.NewScanner(reader)
 
 	if !scanner.Scan() {
 		return nil

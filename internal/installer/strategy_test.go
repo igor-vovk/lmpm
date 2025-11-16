@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hubblew/pim/internal/config"
+	"github.com/spf13/afero"
 )
 
 func TestCreateStrategy(t *testing.T) {
@@ -61,7 +62,8 @@ func TestCreateStrategy(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strategy, err := NewStrategy(tt.strategyType, tt.outputPath)
+			fs := afero.NewMemMapFs()
+			strategy, err := NewStrategy(fs, tt.strategyType, tt.outputPath)
 
 			if tt.expectError {
 				if err == nil {
@@ -104,7 +106,8 @@ func TestCreateStrategyOutputPaths(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strategy, err := NewStrategy("", tt.outputPath)
+			fs := afero.NewMemMapFs()
+			strategy, err := NewStrategy(fs, "", tt.outputPath)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

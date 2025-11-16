@@ -2,22 +2,23 @@ package installer
 
 import (
 	"io"
-	"os"
 	"path/filepath"
+
+	"github.com/spf13/afero"
 )
 
-func CopyFile(src, dst string) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+func CopyFile(fs afero.Fs, src, dst string) error {
+	if err := fs.MkdirAll(filepath.Dir(dst), 0755); err != nil {
 		return err
 	}
 
-	srcFile, err := os.Open(src)
+	srcFile, err := fs.Open(src)
 	if err != nil {
 		return err
 	}
 	defer srcFile.Close()
 
-	dstFile, err := os.Create(dst)
+	dstFile, err := fs.Create(dst)
 	if err != nil {
 		return err
 	}
@@ -27,12 +28,12 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 
-	srcInfo, err := os.Stat(src)
+	srcInfo, err := fs.Stat(src)
 	if err != nil {
 		return err
 	}
 
-	return os.Chmod(dst, srcInfo.Mode())
+	return fs.Chmod(dst, srcInfo.Mode())
 }
 
 func HasMdExtension(path string) bool {

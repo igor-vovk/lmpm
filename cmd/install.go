@@ -6,6 +6,7 @@ import (
 
 	"github.com/hubblew/pim/internal/config"
 	"github.com/hubblew/pim/internal/installer"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,8 @@ var installCmd = &cobra.Command{
 			UserPrompter: prompter,
 		}
 
-		if err := installer.NewInstaller().Install(&opts); err != nil {
+		fs := afero.NewOsFs()
+		if err := installer.NewInstaller(fs).Install(&opts); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}
 

@@ -5,24 +5,28 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/afero"
 )
 
 type ConcatStrategy struct {
+	fs         afero.Fs
 	outputPath string
-	outFile    *os.File
+	outFile    afero.File
 }
 
 var _ Strategy = (*ConcatStrategy)(nil)
 
-func NewConcatStrategy(path string) *ConcatStrategy {
+func NewConcatStrategy(fs afero.Fs, path string) *ConcatStrategy {
 	return &ConcatStrategy{
+		fs:         fs,
 		outputPath: path,
 	}
 }
 
 func (s *ConcatStrategy) Initialize(prompter UserPrompter) error {
-	if _, err := os.Stat(s.outputPath); err == nil {
-		isGeneratedByPim, err := IsPimGenerated(s.outputPath)
+	if _, err := s.fs.Stat(s.outputPath); err == nil {
+		isGeneratedByPim, err := IsPimGenerated(s.fs, s.outputPath)
 		if err != nil {
 			return fmt.Errorf("failed to check if file can be overridden: %w", err)
 		}
@@ -37,15 +41,15 @@ func (s *ConcatStrategy) Initialize(prompter UserPrompter) error {
 		}
 	}
 
-	if err := os.Remove(s.outputPath); err != nil && !os.IsNotExist(err) {
+	if err := s.fs.Remove(s.outputPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to delete output file '%s': %w", s.outputPath, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(s.outputPath), 0755); err != nil {
+	if err := s.fs.MkdirAll(filepath.Dir(s.outputPath), 0755); err != nil {
 		return fmt.Errorf("failed to create output directory '%s': %w", filepath.Dir(s.outputPath), err)
 	}
 
-	outFile, err := os.Create(s.outputPath)
+	outFile, err := s.fs.Create(s.outputPath)
 	if err != nil {
 		return fmt.Errorf("failed to create output file '%s': %w", s.outputPath, err)
 	}
@@ -61,7 +65,7 @@ func (s *ConcatStrategy) Initialize(prompter UserPrompter) error {
 }
 
 func (s *ConcatStrategy) AddFile(srcPath, _ string) error {
-	srcFile, err := os.Open(srcPath)
+	srcFile, err := s.fs.Open(srcPath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file '%s': %w", srcPath, err)
 	}
