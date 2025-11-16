@@ -16,3 +16,4 @@ targets:
       - instructions/intro.md
       - "@awesome-copilot/instructions/go.instructions.md"
       - "instructions/coding-style.md"
+      - "instructions/yaml-style.md"

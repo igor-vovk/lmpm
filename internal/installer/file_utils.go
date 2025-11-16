@@ -35,7 +35,7 @@ func CopyFile(src, dst string) error {
 	return os.Chmod(dst, srcInfo.Mode())
 }
 
-func HasTextExtension(path string) bool {
+func HasMdExtension(path string) bool {
 	ext := filepath.Ext(path)
-	return ext == ".md" || ext == ".txt"
+	return ext == ".md"
 }

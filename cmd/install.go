@@ -10,6 +10,7 @@ import (
 )
 
 var configPathFlag string
+var forceFlag bool
 
 const DefaultConfigFileName = "pim.yaml"
 
@@ -37,7 +38,19 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
-		if err := installer.New().Install(cfg); err != nil {
+		var prompter installer.UserPrompter
+		if forceFlag {
+			prompter = installer.NewAcceptAllPrompter()
+		} else {
+			prompter = installer.NewInteractivePrompter()
+		}
+
+		opts := installer.Options{
+			Config:       cfg,
+			UserPrompter: prompter,
+		}
+
+		if err := installer.NewInstaller().Install(&opts); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}
 
@@ -52,6 +65,13 @@ func init() {
 		"c",
 		DefaultConfigFileName,
 		"Path to configuration file",
+	)
+	installCmd.Flags().BoolVarP(
+		&forceFlag,
+		"force",
+		"f",
+		false,
+		"Force overwrite existing files without prompting",
 	)
 
 	rootCmd.AddCommand(installCmd)

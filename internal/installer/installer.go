@@ -12,11 +12,16 @@ import (
 type Installer struct {
 }
 
-func New() *Installer {
+type Options struct {
+	Config       *config.Config
+	UserPrompter UserPrompter
+}
+
+func NewInstaller() *Installer {
 	return &Installer{}
 }
 
-func (i *Installer) Install(cfg *config.Config) error {
+func (i *Installer) Install(options *Options) error {
 	tempDir, err := os.MkdirTemp("", "pim-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
@@ -25,7 +30,7 @@ func (i *Installer) Install(cfg *config.Config) error {
 
 	sourceDirsByName := make(map[string]string)
 
-	for _, source := range cfg.Sources {
+	for _, source := range options.Config.Sources {
 		if info, err := os.Stat(source.URL); err == nil && info.IsDir() {
 			sourceDirsByName[source.Name] = source.URL
 
@@ -49,7 +54,7 @@ func (i *Installer) Install(cfg *config.Config) error {
 		sourceDirsByName[source.Name] = sourceDir
 	}
 
-	for _, target := range cfg.Targets {
+	for _, target := range options.Config.Targets {
 		fmt.Printf("Installing target '%s' to %s...\n", target.Name, target.Output)
 
 		strategy, err := NewStrategy(target.StrategyType, target.Output)
@@ -57,7 +62,7 @@ func (i *Installer) Install(cfg *config.Config) error {
 			return fmt.Errorf("failed to create strategy for target '%s': %w", target.Name, err)
 		}
 
-		if err := strategy.Prepare(); err != nil {
+		if err := strategy.Initialize(options.UserPrompter); err != nil {
 			return err
 		}
 		defer strategy.Close()

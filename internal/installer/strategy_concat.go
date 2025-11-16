@@ -12,13 +12,31 @@ type ConcatStrategy struct {
 	outFile    *os.File
 }
 
+var _ Strategy = (*ConcatStrategy)(nil)
+
 func NewConcatStrategy(path string) *ConcatStrategy {
 	return &ConcatStrategy{
 		outputPath: path,
 	}
 }
 
-func (s *ConcatStrategy) Prepare() error {
+func (s *ConcatStrategy) Initialize(prompter UserPrompter) error {
+	if _, err := os.Stat(s.outputPath); err == nil {
+		isGeneratedByPim, err := IsPimGenerated(s.outputPath)
+		if err != nil {
+			return fmt.Errorf("failed to check if file can be overridden: %w", err)
+		}
+		if !isGeneratedByPim {
+			allowOverride, err := prompter.ConfirmOverwrite(s.outputPath)
+			if err != nil {
+				return fmt.Errorf("failed to prompt for file overwrite: %w", err)
+			}
+			if !allowOverride {
+				return fmt.Errorf("user declined to override file '%s'", s.outputPath)
+			}
+		}
+	}
+
 	if err := os.Remove(s.outputPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to delete output file '%s': %w", s.outputPath, err)
 	}
@@ -33,6 +51,12 @@ func (s *ConcatStrategy) Prepare() error {
 	}
 
 	s.outFile = outFile
+
+	err = AddGeneratedByPimHeader(s.outFile)
+	if err != nil {
+		return fmt.Errorf("failed to write frontmatter to output file '%s': %w", s.outputPath, err)
+	}
+
 	return nil
 }
 

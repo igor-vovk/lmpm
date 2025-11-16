@@ -8,10 +8,10 @@ import (
 
 // Strategy defines the interface for different installation strategies.
 //
-// Each strategy must implement methods to prepare the output, add files,
-// and close any resources when done.
+// Each strategy must implement methods to Initialize the output, AddFile to add files,
+// and Close any resources when done.
 type Strategy interface {
-	Prepare() error
+	Initialize(prompter UserPrompter) error
 	AddFile(srcPath, relativePath string) error
 	Close() error
 }
@@ -28,7 +28,7 @@ func NewStrategy(
 	case config.StrategyPreserve:
 		return NewPreserveStrategy(outputPath), nil
 	case "":
-		if HasTextExtension(outputPath) {
+		if HasMdExtension(outputPath) {
 			return NewStrategy(config.StrategyConcat, outputPath)
 		} else {
 			return NewStrategy(config.StrategyFlatten, outputPath)
