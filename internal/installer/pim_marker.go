@@ -10,7 +10,7 @@ import (
 const generatedByPim = "github.com/hubblew/pim-cli"
 
 type frontmatterHeader struct {
-	GeneratedBy string `yaml:"generated-by"`
+	GeneratedBy string `yaml:"generatedBy"`
 }
 
 func defaultHeader() frontmatterHeader {

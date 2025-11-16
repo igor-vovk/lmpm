@@ -38,9 +38,16 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
+		var prompter installer.UserPrompter
+		if forceFlag {
+			prompter = installer.NewAcceptAllPrompter()
+		} else {
+			prompter = installer.NewInteractivePrompter()
+		}
+
 		opts := installer.Options{
-			Config: cfg,
-			Force:  forceFlag,
+			Config:       cfg,
+			UserPrompter: prompter,
 		}
 
 		if err := installer.NewInstaller().Install(&opts); err != nil {

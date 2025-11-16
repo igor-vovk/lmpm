@@ -10,13 +10,15 @@ type FlattenStrategy struct {
 	outputPath string
 }
 
+var _ Strategy = (*FlattenStrategy)(nil)
+
 func NewFlattenStrategy(path string) *FlattenStrategy {
 	return &FlattenStrategy{
 		outputPath: path,
 	}
 }
 
-func (s *FlattenStrategy) Prepare(_ bool) error {
+func (s *FlattenStrategy) Initialize(_ UserPrompter) error {
 	if err := os.RemoveAll(s.outputPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to delete output directory '%s': %w", s.outputPath, err)
 	}

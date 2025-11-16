@@ -10,13 +10,15 @@ type PreserveStrategy struct {
 	outputPath string
 }
 
+var _ Strategy = (*PreserveStrategy)(nil)
+
 func NewPreserveStrategy(path string) *PreserveStrategy {
 	return &PreserveStrategy{
 		outputPath: path,
 	}
 }
 
-func (s *PreserveStrategy) Prepare(_ bool) error {
+func (s *PreserveStrategy) Initialize(_ UserPrompter) error {
 	if err := os.RemoveAll(s.outputPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to delete output directory '%s': %w", s.outputPath, err)
 	}

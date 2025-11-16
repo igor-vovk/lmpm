@@ -13,8 +13,8 @@ type Installer struct {
 }
 
 type Options struct {
-	Config *config.Config
-	Force  bool
+	Config       *config.Config
+	UserPrompter UserPrompter
 }
 
 func NewInstaller() *Installer {
@@ -62,7 +62,7 @@ func (i *Installer) Install(options *Options) error {
 			return fmt.Errorf("failed to create strategy for target '%s': %w", target.Name, err)
 		}
 
-		if err := strategy.Prepare(options.Force); err != nil {
+		if err := strategy.Initialize(options.UserPrompter); err != nil {
 			return err
 		}
 		defer strategy.Close()

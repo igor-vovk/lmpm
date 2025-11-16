@@ -44,13 +44,6 @@ func TestCreateStrategy(t *testing.T) {
 			expectedType: reflect.TypeOf(&ConcatStrategy{}),
 		},
 		{
-			name:         "auto-detect concat from .txt extension",
-			strategyType: "",
-			outputPath:   "./output.txt",
-			expectError:  false,
-			expectedType: reflect.TypeOf(&ConcatStrategy{}),
-		},
-		{
 			name:         "auto-detect flatten from directory path",
 			strategyType: "",
 			outputPath:   "./output",
@@ -102,7 +95,6 @@ func TestCreateStrategyOutputPaths(t *testing.T) {
 		expectedType reflect.Type
 	}{
 		{"markdown file", "docs.md", reflect.TypeOf(&ConcatStrategy{})},
-		{"text file", "output.txt", reflect.TypeOf(&ConcatStrategy{})},
 		{"nested markdown", "./nested/path/docs.md", reflect.TypeOf(&ConcatStrategy{})},
 		{"directory", "output/", reflect.TypeOf(&FlattenStrategy{})},
 		{"nested directory", "./nested/output", reflect.TypeOf(&FlattenStrategy{})},

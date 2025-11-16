@@ -8,10 +8,10 @@ import (
 
 // Strategy defines the interface for different installation strategies.
 //
-// Each strategy must implement methods to prepare the output, add files,
-// and close any resources when done.
+// Each strategy must implement methods to Initialize the output, AddFile to add files,
+// and Close any resources when done.
 type Strategy interface {
-	Prepare(force bool) error
+	Initialize(prompter UserPrompter) error
 	AddFile(srcPath, relativePath string) error
 	Close() error
 }
