@@ -97,7 +97,10 @@ func canOverride(path string) (bool, error) {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
-		return false, fmt.Errorf("failed to read user input")
+		if err := scanner.Err(); err != nil {
+			return false, fmt.Errorf("failed to read user input: %w", err)
+		}
+		return false, fmt.Errorf("no input received (EOF)")
 	}
 
 	response := strings.ToLower(strings.TrimSpace(scanner.Text()))
