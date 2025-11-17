@@ -58,100 +58,100 @@ func NewChoiceDialog(prompt string, choices []Choice) ChoiceDialog {
 	}
 }
 
-func (m ChoiceDialog) Init() tea.Cmd {
+func (d ChoiceDialog) Init() tea.Cmd {
 	return nil
 }
 
-func (m ChoiceDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (d ChoiceDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			m.Cancelled = true
-			return m, tea.Quit
+			d.Cancelled = true
+			return d, tea.Quit
 
 		case "enter":
-			m.Selected = true
-			return m, tea.Quit
+			d.Selected = true
+			return d, tea.Quit
 
 		case "left", "h", "up", "k":
-			m.Cursor--
-			if m.Cursor < 0 {
-				m.Cursor = len(m.Choices) - 1
+			d.Cursor--
+			if d.Cursor < 0 {
+				d.Cursor = len(d.Choices) - 1
 			}
 
 		case "right", "l", "down", "j":
-			m.Cursor++
-			if m.Cursor >= len(m.Choices) {
-				m.Cursor = 0
+			d.Cursor++
+			if d.Cursor >= len(d.Choices) {
+				d.Cursor = 0
 			}
 
 		case "home":
-			m.Cursor = 0
+			d.Cursor = 0
 
 		case "end":
-			m.Cursor = len(m.Choices) - 1
+			d.Cursor = len(d.Choices) - 1
 
 		default:
 			// Check if the key matches any choice label's first character
 			key := strings.ToLower(msg.String())
 			if len(key) == 1 {
-				for i, choice := range m.Choices {
+				for i, choice := range d.Choices {
 					if len(choice.Label) > 0 && strings.ToLower(string(choice.Label[0])) == key {
-						m.Cursor = i
-						m.Selected = true
-						return m, tea.Quit
+						d.Cursor = i
+						d.Selected = true
+						return d, tea.Quit
 					}
 				}
 			}
 		}
 	}
 
-	return m, nil
+	return d, nil
 }
 
-func (m ChoiceDialog) View() string {
-	if m.Selected || m.Cancelled {
+func (d ChoiceDialog) View() string {
+	if d.Selected || d.Cancelled {
 		return ""
 	}
 
 	var b strings.Builder
 
-	if m.Prompt != "" {
-		b.WriteString(m.StyleConfig.PromptStyle.Render(m.Prompt))
+	if d.Prompt != "" {
+		b.WriteString(d.StyleConfig.PromptStyle.Render(d.Prompt))
 		b.WriteString(" ")
 	}
 
-	for i, choice := range m.Choices {
+	for i, choice := range d.Choices {
 		if i > 0 {
 			b.WriteString(" / ")
 		}
 
-		if i == m.Cursor {
-			b.WriteString(m.StyleConfig.HighlightStyle.Render(choice.Label))
+		if i == d.Cursor {
+			b.WriteString(d.StyleConfig.HighlightStyle.Render(choice.Label))
 		} else {
-			b.WriteString(m.StyleConfig.NormalStyle.Render(choice.Label))
+			b.WriteString(d.StyleConfig.NormalStyle.Render(choice.Label))
 		}
 	}
 
 	b.WriteString("\n")
-	b.WriteString(m.StyleConfig.HelpStyle.Render("(Use arrow keys to select, Enter to confirm, Esc to cancel)"))
+	b.WriteString(d.StyleConfig.HelpStyle.Render("(Use arrow keys to select, Enter to confirm, Esc to cancel)"))
 	b.WriteString("\n")
 
 	return b.String()
 }
 
 // GetSelectedChoice returns the currently selected choice.
-func (m ChoiceDialog) GetSelectedChoice() *Choice {
-	if m.Cancelled || !m.Selected || m.Cursor >= len(m.Choices) {
+func (d ChoiceDialog) GetSelectedChoice() *Choice {
+	if d.Cancelled || !d.Selected || d.Cursor >= len(d.Choices) {
 		return nil
 	}
-	return &m.Choices[m.Cursor]
+	return &d.Choices[d.Cursor]
 }
 
 // GetSelectedValue returns the value of the selected choice.
-func (m ChoiceDialog) GetSelectedValue() any {
-	choice := m.GetSelectedChoice()
+func (d ChoiceDialog) GetSelectedValue() any {
+	choice := d.GetSelectedChoice()
 	if choice == nil {
 		return nil
 	}
@@ -159,8 +159,8 @@ func (m ChoiceDialog) GetSelectedValue() any {
 }
 
 // Run is a convenience method to run the choice selector and return the result.
-func (m ChoiceDialog) Run() (*Choice, error) {
-	p := tea.NewProgram(m)
+func (d ChoiceDialog) Run() (*Choice, error) {
+	p := tea.NewProgram(d)
 	finalModel, err := p.Run()
 	if err != nil {
 		return nil, err
