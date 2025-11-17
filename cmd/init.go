@@ -99,12 +99,13 @@ func runInit(_ *cobra.Command, _ []string) error {
 	fmt.Printf("Instructions directory: %s\n", instructionsDir)
 
 	// Step 7: Ask if user wants to generate instructions using AI
-	fmt.Printf("\nDo you want to generate instruction files using %s? (y/n): ", selectedTool.Descriptor())
-	generateInput, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("failed to read input: %w", err)
-	}
-	if strings.TrimSpace(strings.ToLower(generateInput)) == "y" {
+	fmt.Printf("\nDo you want to generate instruction files using %s?\n", selectedTool.Descriptor())
+	dialog := ui.NewChoiceDialog("", []ui.Choice{
+		{Label: "Yes", Value: true},
+		{Label: "No", Value: false},
+	})
+	choice, err := dialog.Run()
+	if choice != nil && choice.Value.(bool) {
 		if err := generateInstructions(selectedTool, instructionsDir); err != nil {
 			fmt.Printf("Warning: failed to generate instructions: %v\n", err)
 		}
@@ -252,7 +253,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 
 // generateInstructions uses the agent tool to generate instruction files
 func generateInstructions(tool agents.AgentTool, instructionsDir string) error {
-	fmt.Printf("\nGenerating instruction files with %s (this may take a while)...\n\n", tool.Descriptor())
+	fmt.Printf("\nGenerating instruction files using %s (this may take a while)...\n\n", tool.Descriptor())
 
 	prompt, err := templates.RenderGenerateInstructionsPrompt(instructionsDir)
 	if err != nil {

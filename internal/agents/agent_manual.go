@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/hubblew/pim/internal/ui"
 )
 
@@ -22,13 +23,26 @@ func (a *ManualAgent) Descriptor() string {
 }
 
 func (a *ManualAgent) ExecuteCommand(command string) (string, error) {
+	r, err := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(100),
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to create markdown renderer: %w", err)
+	}
+
+	rendered, err := r.Render(command)
+	if err != nil {
+		return "", fmt.Errorf("failed to render markdown: %w", err)
+	}
+
 	fmt.Println()
 	fmt.Println("=== Manual Task ===")
-	fmt.Println(command)
+	fmt.Print(rendered)
 	fmt.Println("===================")
 	fmt.Println()
 
-	err := ui.WaitForKey("Press any key to continue...")
+	err = ui.WaitForKey("Press any key to continue...")
 	if err != nil {
 		return "", fmt.Errorf("failed to wait for key press: %w", err)
 	}

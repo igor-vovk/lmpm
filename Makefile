@@ -38,4 +38,4 @@ install: build test
 
 demo:
 	@echo "Running UI component demo..."
-	$(GO) run internal/ui/demo/main.go
+	@$(GO) run internal/ui/demo/*.go
