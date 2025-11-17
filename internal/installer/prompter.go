@@ -38,7 +38,8 @@ func (p *InteractivePrompter) ConfirmOverwrite(path string) (bool, error) {
 
 	if err != nil {
 		return false, fmt.Errorf("failed to get user input: %w", err)
-	} else if response == nil {
+	}
+	if response == nil {
 		return false, nil
 	}
 
