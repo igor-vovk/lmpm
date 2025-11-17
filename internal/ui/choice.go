@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Choice represents a single option in a choice selector.
@@ -33,29 +32,6 @@ type ChoiceDialog struct {
 }
 
 var _ tea.Model = (*ChoiceDialog)(nil)
-
-// StyleConfig holds styling configuration for the choice component.
-type StyleConfig struct {
-	HighlightStyle lipgloss.Style
-	NormalStyle    lipgloss.Style
-	PromptStyle    lipgloss.Style
-	HelpStyle      lipgloss.Style
-}
-
-// DefaultStyleConfig returns sensible default styles.
-func DefaultStyleConfig() StyleConfig {
-	return StyleConfig{
-		HighlightStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("2")),
-		NormalStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")),
-		PromptStyle: lipgloss.NewStyle(),
-		HelpStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
-			Faint(true),
-	}
-}
 
 // NewChoiceDialog creates a new choice selector model.
 func NewChoiceDialog(prompt string, choices []Choice) ChoiceDialog {

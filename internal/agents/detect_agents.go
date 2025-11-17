@@ -21,6 +21,8 @@ func DetectAgentTools() []AgentTool {
 		}
 	}
 
+	tools = append(tools, NewManualAgent())
+
 	return tools
 }
 

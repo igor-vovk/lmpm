@@ -225,6 +225,24 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 
 		cfg.Targets = []config.Target{target}
 		break
+	case agents.ManualAgentType:
+		target := config.Target{
+			Name:    "manual-instructions",
+			Output:  "AGENTS.md",
+			Include: []string{},
+		}
+
+		// Add existing files to include list
+		for _, file := range existingFiles {
+			// Skip the output file itself
+			if file == "AGENTS.md" {
+				continue
+			}
+			target.Include = append(target.Include, file)
+		}
+
+		cfg.Targets = []config.Target{target}
+		break
 	default:
 		return nil, fmt.Errorf("unsupported tool: %s", tool)
 	}
