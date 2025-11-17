@@ -1,4 +1,4 @@
-.PHONY: all build test test-verbose clean install demo-ui
+.PHONY: all build test test-verbose clean install demo
 
 BINARY_NAME=pim
 BUILD_DIR=.
