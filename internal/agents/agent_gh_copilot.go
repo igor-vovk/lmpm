@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+
+	"github.com/hubblew/pim/internal/utils"
 )
 
 type GhCopilotAgent struct {
@@ -30,8 +32,8 @@ func (a *GhCopilotAgent) ExecuteCommand(command string) (string, error) {
 
 	var buf bytes.Buffer
 	prefix := "  Copilot> "
-	cmd.Stdout = NewPrefixWriter(os.Stdout, prefix)
-	cmd.Stderr = NewPrefixWriter(os.Stderr, prefix)
+	cmd.Stdout = utils.NewPrefixWriter(os.Stdout, prefix)
+	cmd.Stderr = utils.NewPrefixWriter(os.Stderr, prefix)
 
 	if err := cmd.Run(); err != nil {
 		return "", err

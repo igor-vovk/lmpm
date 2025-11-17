@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+
+	"github.com/hubblew/pim/internal/utils"
 )
 
 type GeminiCLIAgent struct {
@@ -31,8 +33,8 @@ func (a *GeminiCLIAgent) ExecuteCommand(command string) (string, error) {
 
 	var buf bytes.Buffer
 	prefix := "  Gemini> "
-	cmd.Stdout = NewPrefixWriter(os.Stdout, prefix)
-	cmd.Stderr = NewPrefixWriter(os.Stderr, prefix)
+	cmd.Stdout = utils.NewPrefixWriter(os.Stdout, prefix)
+	cmd.Stderr = utils.NewPrefixWriter(os.Stderr, prefix)
 
 	err := cmd.Run()
 
