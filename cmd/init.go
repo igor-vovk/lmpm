@@ -12,6 +12,7 @@ import (
 	"github.com/hubblew/pim/internal/agents"
 	"github.com/hubblew/pim/internal/config"
 	"github.com/hubblew/pim/internal/templates"
+	"github.com/hubblew/pim/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -39,30 +40,29 @@ func runInit(_ *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	fmt.Println("\nDetected agents:")
-	for i, tool := range tools {
-		fmt.Printf("%d. %s\n", i+1, tool.Descriptor())
-	}
-
 	// Step 2: Ask user to choose a tool
 	var selectedTool agents.AgentTool
 	if len(tools) == 1 {
 		selectedTool = tools[0]
 		fmt.Printf("\nUsing detected tool: %s\n", selectedTool.Descriptor())
 	} else {
-		fmt.Print("\nSelect a tool (enter number): ")
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
+		choices := make([]ui.Choice, len(tools))
+		for i, tool := range tools {
+			choices[i] = ui.Choice{
+				Label: tool.Descriptor(),
+				Value: tool,
+			}
 		}
-		input = strings.TrimSpace(input)
 
-		var idx int
-		_, err = fmt.Sscanf(input, "%d", &idx)
-		if err != nil || idx < 1 || idx > len(tools) {
-			return fmt.Errorf("invalid selection")
+		dialog := ui.NewVerticalChoiceDialog("\nSelect an agent:", choices)
+		choice, err := dialog.Run()
+		if err != nil {
+			return fmt.Errorf("failed to run selection dialog: %w", err)
 		}
-		selectedTool = tools[idx-1]
+		if choice == nil {
+			return fmt.Errorf("no agent selected")
+		}
+		selectedTool = choice.Value.(agents.AgentTool)
 	}
 
 	// Step 3: Ask for configuration file name

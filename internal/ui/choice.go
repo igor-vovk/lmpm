@@ -13,6 +13,14 @@ type Choice struct {
 	Value any
 }
 
+// Layout defines how choices are rendered.
+type Layout int
+
+const (
+	LayoutHorizontal Layout = iota
+	LayoutVertical
+)
+
 // ChoiceDialog is a Bubble Tea model for selecting from multiple choices.
 type ChoiceDialog struct {
 	Prompt      string
@@ -21,6 +29,7 @@ type ChoiceDialog struct {
 	Selected    bool
 	Cancelled   bool
 	StyleConfig StyleConfig
+	Layout      Layout
 }
 
 var _ tea.Model = (*ChoiceDialog)(nil)
@@ -55,7 +64,15 @@ func NewChoiceDialog(prompt string, choices []Choice) ChoiceDialog {
 		Choices:     choices,
 		Cursor:      0,
 		StyleConfig: DefaultStyleConfig(),
+		Layout:      LayoutHorizontal,
 	}
+}
+
+// NewVerticalChoiceDialog creates a new choice selector with vertical layout.
+func NewVerticalChoiceDialog(prompt string, choices []Choice) ChoiceDialog {
+	d := NewChoiceDialog(prompt, choices)
+	d.Layout = LayoutVertical
+	return d
 }
 
 func (d ChoiceDialog) Init() tea.Cmd {
@@ -119,22 +136,41 @@ func (d ChoiceDialog) View() string {
 
 	if d.Prompt != "" {
 		b.WriteString(d.StyleConfig.PromptStyle.Render(d.Prompt))
-		b.WriteString(" ")
-	}
-
-	for i, choice := range d.Choices {
-		if i > 0 {
-			b.WriteString(" / ")
-		}
-
-		if i == d.Cursor {
-			b.WriteString(d.StyleConfig.HighlightStyle.Render(choice.Label))
+		if d.Layout == LayoutVertical {
+			b.WriteString("\n")
 		} else {
-			b.WriteString(d.StyleConfig.NormalStyle.Render(choice.Label))
+			b.WriteString(" ")
 		}
 	}
 
-	b.WriteString("\n")
+	if d.Layout == LayoutVertical {
+		for i, choice := range d.Choices {
+			cursor := "  "
+			if i == d.Cursor {
+				cursor = "> "
+				b.WriteString(cursor)
+				b.WriteString(d.StyleConfig.HighlightStyle.Render(choice.Label))
+			} else {
+				b.WriteString(cursor)
+				b.WriteString(d.StyleConfig.NormalStyle.Render(choice.Label))
+			}
+			b.WriteString("\n")
+		}
+	} else {
+		for i, choice := range d.Choices {
+			if i > 0 {
+				b.WriteString(" / ")
+			}
+
+			if i == d.Cursor {
+				b.WriteString(d.StyleConfig.HighlightStyle.Render(choice.Label))
+			} else {
+				b.WriteString(d.StyleConfig.NormalStyle.Render(choice.Label))
+			}
+		}
+		b.WriteString("\n")
+	}
+
 	b.WriteString(d.StyleConfig.HelpStyle.Render("(Use arrow keys to select, Enter to confirm, Esc to cancel)"))
 	b.WriteString("\n")
 
