@@ -24,7 +24,7 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	alphaCmd.AddCommand(initCmd)
 }
 
 func runInit(_ *cobra.Command, _ []string) error {

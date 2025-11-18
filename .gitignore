@@ -32,3 +32,6 @@ go.work.sum
 # .vscode/
 
 pim
+
+.gemini/
+gha-creds-*.json
