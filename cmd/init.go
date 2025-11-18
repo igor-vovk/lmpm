@@ -57,8 +57,7 @@ func runInit(_ *cobra.Command, _ []string) error {
 			choices[i] = ui.Choice{Label: tool.Descriptor(), Value: tool}
 		}
 
-		dialog := ui.NewChoiceDialog("\nSelect an agent:", choices).Vertical()
-		choice, err := dialog.Run()
+		choice, err := ui.NewChoiceDialog("\nSelect an agent:", choices).Vertical().Run()
 		if err != nil {
 			return fmt.Errorf("failed to run selection dialog: %w", err)
 		}
@@ -103,11 +102,11 @@ func runInit(_ *cobra.Command, _ []string) error {
 
 	// Step 7: Ask if user wants to generate instructions using AI
 	fmt.Printf("\nDo you want to generate instruction files using %s?\n", selectedTool.Descriptor())
-	dialog := ui.NewChoiceDialog("", []ui.Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
-	})
-	choice, err := dialog.Run()
+
+	choice, err := ui.NewChoiceDialog("", ui.ChoicesYesNo()).Run()
+	if err != nil {
+		return fmt.Errorf("failed to run generation choice dialog: %w", err)
+	}
 	if choice != nil && choice.Value.(bool) {
 		if err := generateInstructions(selectedTool, instructionsDir); err != nil {
 			fmt.Printf("Warning: failed to generate instructions: %v\n", err)

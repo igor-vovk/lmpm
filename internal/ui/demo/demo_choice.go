@@ -8,12 +8,7 @@ import (
 )
 
 func demoYesNo() {
-	choices := []ui.Choice{
-		{Label: "yes", Value: true},
-		{Label: "no", Value: false},
-	}
-
-	model := ui.NewChoiceDialog("Do you want to continue?", choices)
+	model := ui.NewChoiceDialog("Do you want to continue?", ui.ChoicesYesNo())
 	model.Cursor = 1 // Default to "no"
 
 	choice, err := model.Run()

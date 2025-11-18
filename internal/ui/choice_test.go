@@ -7,12 +7,7 @@ import (
 )
 
 func TestNewChoiceDialog(t *testing.T) {
-	choices := []Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
-	}
-
-	model := NewChoiceDialog("Confirm?", choices)
+	model := NewChoiceDialog("Confirm?", ChoicesYesNo())
 
 	if model.Prompt != "Confirm?" {
 		t.Errorf("expected prompt 'Confirm?', got '%s'", model.Prompt)
@@ -66,9 +61,9 @@ func TestChoiceDialog_Navigation(t *testing.T) {
 }
 
 func TestChoiceDialog_Selection(t *testing.T) {
-	choices := []Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
+	choices := ChoicesYesNo()
+	if choices[1].Value != false {
+		t.Fatalf("expected second choice value to be false, got %v", choices[1].Value)
 	}
 
 	model := NewChoiceDialog("Confirm?", choices)
@@ -96,12 +91,7 @@ func TestChoiceDialog_Selection(t *testing.T) {
 }
 
 func TestChoiceDialog_Cancel(t *testing.T) {
-	choices := []Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
-	}
-
-	model := NewChoiceDialog("Confirm?", choices)
+	model := NewChoiceDialog("Confirm?", ChoicesYesNo())
 	result, _ := model.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	model = result.(ChoiceDialog)
 
@@ -116,12 +106,7 @@ func TestChoiceDialog_Cancel(t *testing.T) {
 }
 
 func TestChoiceDialog_QuickSelect(t *testing.T) {
-	choices := []Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
-	}
-
-	model := NewChoiceDialog("Confirm?", choices)
+	model := NewChoiceDialog("Confirm?", ChoicesYesNo())
 
 	// Press 'n' to quickly highlight "No"
 	result, _ := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
@@ -179,12 +164,7 @@ func TestChoiceDialog_CircularNavigation(t *testing.T) {
 }
 
 func TestChoiceDialog_View(t *testing.T) {
-	choices := []Choice{
-		{Label: "Yes", Value: true},
-		{Label: "No", Value: false},
-	}
-
-	model := NewChoiceDialog("Confirm?", choices)
+	model := NewChoiceDialog("Confirm?", ChoicesYesNo())
 	view := model.View()
 
 	if view == "" {

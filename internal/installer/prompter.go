@@ -23,15 +23,7 @@ func NewInteractivePrompter() *InteractivePrompter {
 func (p *InteractivePrompter) ConfirmOverwrite(path string) (bool, error) {
 	fmt.Printf("File %s already exists. Overwrite?\n", path)
 
-	dialog := ui.NewChoiceDialog(
-		"Please confirm:",
-		[]ui.Choice{
-			{Label: "Yes", Value: true},
-			{Label: "No", Value: false},
-		},
-	)
-
-	choice, err := dialog.Run()
+	choice, err := ui.NewChoiceDialog("Please confirm:", ui.ChoicesYesNo()).Run()
 
 	if err != nil {
 		return false, fmt.Errorf("failed to get user input: %w", err)

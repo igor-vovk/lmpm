@@ -12,6 +12,13 @@ type Choice struct {
 	Value any
 }
 
+func ChoicesYesNo() []Choice {
+	return []Choice{
+		{Label: "Yes", Value: true},
+		{Label: "No", Value: false},
+	}
+}
+
 // Layout defines how choices are rendered.
 type Layout int
 
