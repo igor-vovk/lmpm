@@ -1,4 +1,4 @@
-package agents
+package tpagents
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ type GeminiCLIAgent struct {
 
 var GeminiCLIAgentType = reflect.TypeOf(new(GeminiCLIAgent))
 
-var _ AgentTool = (*GeminiCLIAgent)(nil)
+var _ TPAgentTool = (*GeminiCLIAgent)(nil)
 
 func NewGeminiCLIAgent(path string) *GeminiCLIAgent {
 	return &GeminiCLIAgent{

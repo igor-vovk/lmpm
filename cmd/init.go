@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
-	"github.com/hubblew/pim/internal/agents"
 	"github.com/hubblew/pim/internal/config"
 	"github.com/hubblew/pim/internal/templates"
+	"github.com/hubblew/pim/internal/tpagents"
 	"github.com/hubblew/pim/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -31,9 +31,9 @@ func runInit(_ *cobra.Command, _ []string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Step 1: Detect LLM agents
-	var tools []agents.AgentTool
+	var tools []tpagents.TPAgentTool
 	err := ui.RunWithSpinner("Detecting CLI agents in your system...", func() error {
-		tools = agents.DetectAgentTools()
+		tools = tpagents.DetectTPAgentTools()
 		return nil
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func runInit(_ *cobra.Command, _ []string) error {
 	}
 
 	// Step 2: Ask user to choose a tool
-	var selectedTool agents.AgentTool
+	var selectedTool tpagents.TPAgentTool
 	if len(tools) == 1 {
 		selectedTool = tools[0]
 		fmt.Printf("\nUsing detected tool: %s\n", selectedTool.Descriptor())
@@ -64,7 +64,7 @@ func runInit(_ *cobra.Command, _ []string) error {
 		if choice == nil {
 			return fmt.Errorf("no agent selected")
 		}
-		selectedTool = choice.Value.(agents.AgentTool)
+		selectedTool = choice.Value.(tpagents.TPAgentTool)
 	}
 
 	// Step 3: Ask for configuration file name
@@ -188,11 +188,11 @@ func discoverInstructionFiles(instructionsDir string) []string {
 }
 
 // generateConfig creates a config based on the selected tool and discovered files
-func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles []string) (*config.Config, error) {
+func generateConfig(tool tpagents.TPAgentTool, instructionsDir string, existingFiles []string) (*config.Config, error) {
 	cfg := config.NewConfig()
 
 	switch reflect.TypeOf(tool) {
-	case agents.GhCopilotAgentType:
+	case tpagents.GhCopilotAgentType:
 		target := config.Target{
 			Name:    "copilot-instructions",
 			Output:  ".github/copilot-instructions.md",
@@ -210,7 +210,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 
 		cfg.Targets = []config.Target{target}
 
-	case agents.GeminiCLIAgentType:
+	case tpagents.GeminiCLIAgentType:
 		target := config.Target{
 			Name:    "gemini-instructions",
 			Output:  "GEMINI.md",
@@ -228,7 +228,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 
 		cfg.Targets = []config.Target{target}
 
-	case agents.ManualAgentType:
+	case tpagents.ManualAgentType:
 		target := config.Target{
 			Name:    "manual-instructions",
 			Output:  "AGENTS.md",
@@ -254,7 +254,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 }
 
 // generateInstructions uses the agent tool to generate instruction files
-func generateInstructions(tool agents.AgentTool, instructionsDir string) error {
+func generateInstructions(tool tpagents.TPAgentTool, instructionsDir string) error {
 	fmt.Printf("\nGenerating instruction files using %s (this may take a while)...\n\n", tool.Descriptor())
 
 	prompt, err := templates.RenderGenerateInstructionsPrompt(instructionsDir)

@@ -1,12 +1,12 @@
-package agents
+package tpagents
 
 import (
 	"os/exec"
 )
 
-// DetectAgentTools checks for known LLM CLI tools in the system
-func DetectAgentTools() []AgentTool {
-	var tools []AgentTool
+// DetectTPAgentTools checks for known Third-Party LLM CLI tools in the system
+func DetectTPAgentTools() []TPAgentTool {
+	var tools []TPAgentTool
 
 	if path, ok := isCommandAvailable("copilot"); ok {
 		cmd := exec.Command(path, "--version")

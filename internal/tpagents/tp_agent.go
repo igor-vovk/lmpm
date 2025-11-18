@@ -1,6 +1,6 @@
-package agents
+package tpagents
 
-type AgentTool interface {
+type TPAgentTool interface {
 	Descriptor() string
 	ExecuteCommand(command string) (string, error)
 }

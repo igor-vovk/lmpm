@@ -1,4 +1,4 @@
-package agents
+package tpagents
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type ManualAgent struct{}
 
 var ManualAgentType = reflect.TypeOf(new(ManualAgent))
 
-var _ AgentTool = (*ManualAgent)(nil)
+var _ TPAgentTool = (*ManualAgent)(nil)
 
 func NewManualAgent() *ManualAgent {
 	return &ManualAgent{}

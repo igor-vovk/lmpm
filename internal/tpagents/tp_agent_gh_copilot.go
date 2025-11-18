@@ -1,4 +1,4 @@
-package agents
+package tpagents
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ type GhCopilotAgent struct {
 
 var GhCopilotAgentType = reflect.TypeOf(new(GhCopilotAgent))
 
-var _ AgentTool = (*GhCopilotAgent)(nil)
+var _ TPAgentTool = (*GhCopilotAgent)(nil)
 
 func NewGhCopilotAgent(path string) *GhCopilotAgent {
 	return &GhCopilotAgent{
