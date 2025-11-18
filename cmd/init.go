@@ -209,7 +209,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 		}
 
 		cfg.Targets = []config.Target{target}
-		break
+
 	case agents.GeminiCLIAgentType:
 		target := config.Target{
 			Name:    "gemini-instructions",
@@ -227,7 +227,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 		}
 
 		cfg.Targets = []config.Target{target}
-		break
+
 	case agents.ManualAgentType:
 		target := config.Target{
 			Name:    "manual-instructions",
@@ -245,7 +245,7 @@ func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles
 		}
 
 		cfg.Targets = []config.Target{target}
-		break
+
 	default:
 		return nil, fmt.Errorf("unsupported tool: %s", tool.Descriptor())
 	}
